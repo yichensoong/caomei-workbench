@@ -1,0 +1,19 @@
+{
+  "name": "caomei-workbench-server",
+  "version": "1.0.0",
+  "description": "草莓·毛巾浴巾创作者协作工作台 - 后端同步服务",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "axios": "^1.6.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

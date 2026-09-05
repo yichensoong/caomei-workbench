@@ -13,7 +13,7 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '..')));
+app.use(express.static(__dirname));
 
 // ==================== 飞书API封装 ====================
 const FEISHU_BASE = 'https://open.feishu.cn/open-apis';

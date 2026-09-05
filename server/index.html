@@ -1,0 +1,2193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>草莓 · 创作者工作台</title>
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js" integrity="sha384-pPi0zxBAoDu6+JXW/C68UZLvBUUtU+7zonhif43rqj7pxsGyqyqzcian2Rj37Rss" crossorigin="anonymous"></script>
+<style>
+/* ===== 设计令牌：粉白奶油色系 ===== */
+:root {
+  --canvas: #FFF5F5;
+  --app-shell: #FFFFFF;
+  --main-wash: #FFF8F8;
+  --lavender-wash: #FFF0F2;
+  --muted-surface: #FFF5F6;
+  --primary: #5C4A5C;
+  --foreground: #4A3B4C;
+  --muted-fg: #9B8B9B;
+  --accent-pink: #E8A0B0;
+  --accent-deep-pink: #C87090;
+  --light-pink: #F8DDE5;
+  --accent-orange: #F0C8A8;
+  --accent-green: #B8D8C8;
+  --accent-purple: #D8C8D8;
+  --warning: #F0D8A8;
+  --success: #B8D8C8;
+  --danger: #E8A0A0;
+  --border: #F0E0E5;
+  --sidebar-border: #F5E8EC;
+  --shadow-color: rgba(200, 112, 144, 0.10);
+  --chart-1: #E8A0B0;
+  --chart-2: #F0C8D0;
+  --chart-3: #D4B8C8;
+  --chart-4: #E8D0D8;
+  --chart-5: #C8A0B0;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: var(--canvas);
+  color: var(--foreground);
+  min-height: 100vh;
+  min-width: 1200px;
+  overflow-x: auto;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ===== 应用外壳 ===== */
+.app-shell {
+  background: var(--app-shell);
+  border-radius: 28px;
+  margin: 16px;
+  min-height: calc(100vh - 32px);
+  display: flex;
+  box-shadow: 0 20px 60px var(--shadow-color);
+  overflow: hidden;
+}
+
+/* ===== 左侧导航 ===== */
+.sidebar {
+  width: 80px;
+  background: var(--app-shell);
+  border-right: 1px solid var(--sidebar-border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 0;
+  flex-shrink: 0;
+}
+
+.logo {
+  width: 40px;
+  height: 40px;
+  position: relative;
+  margin-bottom: 32px;
+  cursor: pointer;
+}
+.logo-layer {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  top: 4px;
+  left: 4px;
+}
+.logo-layer:nth-child(1) { background: var(--light-pink); transform: rotate(12deg); opacity: 0.7; }
+.logo-layer:nth-child(2) { background: var(--accent-pink); transform: rotate(-6deg); opacity: 0.8; }
+.logo-layer:nth-child(3) { background: var(--primary); transform: rotate(0deg); }
+
+.nav-item {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-bottom: 8px;
+  color: var(--muted-fg);
+  transition: all 0.2s cubic-bezier(.16,1,.3,1);
+  position: relative;
+}
+.nav-item:hover { background: var(--lavender-wash); color: var(--primary); }
+.nav-item.active { background: var(--primary); color: #fff; box-shadow: 0 4px 12px rgba(92,74,92,0.3); }
+.nav-item svg { width: 20px; height: 20px; }
+.nav-item .nav-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  min-width: 16px;
+  height: 16px;
+  background: var(--accent-pink);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border: 2px solid var(--app-shell);
+}
+
+.sidebar-bottom { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-pink), var(--accent-deep-pink));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* ===== 主内容区 ===== */
+.main-area { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+.topbar {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  padding: 0 28px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  gap: 16px;
+}
+.search-box {
+  flex: 1;
+  max-width: 480px;
+  height: 40px;
+  background: var(--muted-surface);
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 10px;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+.search-box:focus-within { border-color: var(--accent-pink); background: #fff; }
+.search-box svg { width: 16px; height: 16px; color: var(--muted-fg); flex-shrink: 0; }
+.search-box input {
+  border: none; background: transparent; outline: none;
+  font-size: 13px; color: var(--foreground); width: 100%; font-family: inherit;
+}
+.search-box input::placeholder { color: var(--muted-fg); }
+
+.topbar-actions { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+.icon-btn {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--muted-surface);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--muted-fg); transition: all 0.2s; position: relative;
+}
+.icon-btn:hover { background: var(--lavender-wash); color: var(--primary); }
+.icon-btn svg { width: 18px; height: 18px; }
+.icon-btn .dot {
+  position: absolute; top: 8px; right: 8px; width: 8px; height: 8px;
+  background: var(--accent-pink); border-radius: 50%; border: 2px solid var(--muted-surface);
+}
+
+.content { flex: 1; padding: 24px 28px; overflow-y: auto; background: var(--main-wash); }
+
+.view { display: none; }
+.view.active { display: block; animation: fadeInUp 0.3s ease; }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ===== 通用组件 ===== */
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.page-title { font-size: 22px; font-weight: 700; color: var(--primary); letter-spacing: -0.02em; }
+.page-subtitle { font-size: 13px; color: var(--muted-fg); margin-top: 2px; }
+
+.card {
+  background: var(--app-shell); border-radius: 16px; padding: 18px;
+  border: 1px solid rgba(240,224,229,0.6); box-shadow: 0 2px 12px var(--shadow-color);
+}
+.card-title {
+  font-size: 14px; font-weight: 600; color: var(--foreground); margin-bottom: 14px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.card-title .more { font-size: 11px; color: var(--muted-fg); cursor: pointer; font-weight: 500; }
+.card-title .more:hover { color: var(--accent-deep-pink); }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 999px;
+  font-size: 12px; font-weight: 600; cursor: pointer; border: none;
+  transition: all 0.2s; font-family: inherit;
+}
+.btn-primary { background: var(--primary); color: #fff; box-shadow: 0 2px 8px rgba(92,74,92,0.25); }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(92,74,92,0.3); }
+.btn-pink { background: var(--accent-pink); color: #fff; box-shadow: 0 2px 8px rgba(232,160,176,0.3); }
+.btn-pink:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(232,160,176,0.4); }
+.btn-secondary { background: var(--muted-surface); color: var(--primary); border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--lavender-wash); }
+.btn svg { width: 14px; height: 14px; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+
+.tag {
+  display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px;
+  font-size: 10px; font-weight: 600; gap: 4px;
+}
+.tag-pink { background: rgba(232,160,176,0.25); color: var(--accent-deep-pink); }
+.tag-orange { background: rgba(240,200,168,0.3); color: #B88860; }
+.tag-green { background: rgba(184,216,200,0.35); color: #609880; }
+.tag-purple { background: rgba(216,200,216,0.4); color: #887098; }
+.tag-brown { background: rgba(92,74,92,0.08); color: var(--primary); }
+
+/* ===== 仪表盘 ===== */
+.hero-card {
+  background: linear-gradient(135deg, #FFF0F2 0%, #FFF5F6 50%, #FFF8F8 100%);
+  border-radius: 16px; padding: 24px 28px; margin-bottom: 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: relative; overflow: hidden;
+}
+.hero-card::before {
+  content: ''; position: absolute; right: -40px; top: -40px;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(232,160,176,0.25) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.hero-content { position: relative; z-index: 1; }
+.hero-eyebrow {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--accent-deep-pink); margin-bottom: 8px;
+}
+.hero-title { font-size: 22px; font-weight: 700; color: var(--primary); margin-bottom: 6px; letter-spacing: -0.02em; }
+.hero-desc { font-size: 13px; color: var(--muted-fg); max-width: 420px; }
+.hero-stats { display: flex; gap: 24px; position: relative; z-index: 1; }
+.hero-stat { text-align: center; }
+.hero-stat-value { font-size: 24px; font-weight: 700; color: var(--primary); font-variant-numeric: tabular-nums; }
+.hero-stat-label { font-size: 11px; color: var(--muted-fg); margin-top: 2px; }
+
+.metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+.metric-card {
+  background: var(--app-shell); border-radius: 16px; padding: 16px;
+  border: 1px solid rgba(240,224,229,0.6); box-shadow: 0 2px 12px var(--shadow-color);
+  position: relative; overflow: hidden; transition: transform 0.2s;
+}
+.metric-card:hover { transform: translateY(-2px); }
+.metric-card::after {
+  content: ''; position: absolute; top: 0; right: 0; width: 60px; height: 60px;
+  border-radius: 0 16px 0 40px; opacity: 0.2;
+}
+.metric-card:nth-child(1)::after { background: var(--accent-pink); }
+.metric-card:nth-child(2)::after { background: var(--accent-orange); }
+.metric-card:nth-child(3)::after { background: var(--accent-green); }
+.metric-card:nth-child(4)::after { background: var(--accent-purple); }
+
+.metric-label { font-size: 11px; color: var(--muted-fg); font-weight: 500; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.metric-label svg { width: 14px; height: 14px; }
+.metric-value { font-size: 26px; font-weight: 700; color: var(--primary); font-variant-numeric: tabular-nums; line-height: 1.2; }
+.metric-change { font-size: 11px; margin-top: 6px; display: flex; align-items: center; gap: 4px; font-weight: 600; }
+.metric-change.up { color: #609880; }
+.metric-change.down { color: #C87070; }
+
+.dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+
+.project-row { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); gap: 12px; }
+.project-row:last-child { border-bottom: none; }
+.project-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.project-info { flex: 1; min-width: 0; }
+.project-name { font-size: 13px; font-weight: 500; color: var(--foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.project-meta { font-size: 11px; color: var(--muted-fg); margin-top: 2px; }
+.project-progress { width: 80px; height: 6px; background: var(--muted-surface); border-radius: 3px; overflow: hidden; flex-shrink: 0; }
+.project-progress-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+.project-percent { font-size: 12px; font-weight: 600; color: var(--primary); width: 36px; text-align: right; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+
+.task-item { display: flex; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--border); gap: 10px; }
+.task-item:last-child { border-bottom: none; }
+.task-checkbox {
+  width: 16px; height: 16px; border-radius: 5px; border: 2px solid var(--border);
+  cursor: pointer; flex-shrink: 0; margin-top: 2px;
+  display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+}
+.task-checkbox.checked { background: var(--accent-pink); border-color: var(--accent-pink); }
+.task-checkbox.checked svg { display: block; }
+.task-checkbox svg { display: none; width: 10px; height: 10px; color: #fff; }
+.task-content { flex: 1; min-width: 0; }
+.task-text { font-size: 13px; color: var(--foreground); }
+.task-item.done .task-text { text-decoration: line-through; color: var(--muted-fg); }
+.task-meta { font-size: 11px; color: var(--muted-fg); margin-top: 3px; display: flex; align-items: center; gap: 8px; }
+
+/* ===== 项目看板 ===== */
+.kanban-board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; align-items: start; }
+.kanban-column {
+  background: rgba(255,248,248,0.7); border-radius: 14px; padding: 14px;
+  min-height: 400px; border: 1px solid rgba(240,224,229,0.5);
+  transition: all 0.2s;
+}
+.kanban-column.drag-over {
+  background: #FFF0F2; border-color: var(--accent-pink);
+  box-shadow: 0 0 0 2px rgba(232,160,176,0.3), 0 4px 12px rgba(232,160,176,0.15);
+}
+.kanban-column-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 2px solid; }
+.kanban-column:nth-child(1) .kanban-column-header { border-color: var(--muted-fg); }
+.kanban-column:nth-child(2) .kanban-column-header { border-color: var(--accent-orange); }
+.kanban-column:nth-child(3) .kanban-column-header { border-color: var(--accent-purple); }
+.kanban-column:nth-child(4) .kanban-column-header { border-color: var(--accent-green); }
+
+.kanban-column-title { font-size: 13px; font-weight: 600; color: var(--foreground); display: flex; align-items: center; gap: 8px; }
+.kanban-count { background: var(--muted-surface); color: var(--muted-fg); font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; }
+.kanban-add {
+  width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--muted-fg); transition: all 0.2s;
+}
+.kanban-add:hover { background: var(--muted-surface); color: var(--primary); }
+.kanban-add svg { width: 14px; height: 14px; }
+
+.kanban-cards { display: flex; flex-direction: column; gap: 10px; min-height: 100px; }
+.kanban-card {
+  background: var(--app-shell); border-radius: 12px; padding: 12px;
+  border: 1px solid var(--border); box-shadow: 0 1px 4px rgba(200,112,144,0.06);
+  cursor: grab; transition: all 0.2s; position: relative;
+}
+.kanban-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(200,112,144,0.1); border-color: var(--accent-pink); }
+.kanban-card.dragging { opacity: 0.5; cursor: grabbing; }
+.kanban-card-title { font-size: 13px; font-weight: 600; color: var(--foreground); margin-bottom: 6px; line-height: 1.4; }
+.kanban-card-desc { font-size: 11px; color: var(--muted-fg); margin-bottom: 10px; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.kanban-card-footer { display: flex; align-items: center; justify-content: space-between; }
+.kanban-card-avatars { display: flex; }
+.kanban-avatar {
+  width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 600; color: #fff; border: 2px solid var(--app-shell); margin-left: -6px;
+}
+.kanban-avatar:first-child { margin-left: 0; }
+.kanban-card-date { font-size: 10px; color: var(--muted-fg); display: flex; align-items: center; gap: 3px; }
+.kanban-card-date svg { width: 11px; height: 11px; }
+.kanban-card-priority { position: absolute; top: 10px; right: 10px; width: 6px; height: 6px; border-radius: 50%; }
+.kanban-card-actions { position: absolute; top: 8px; right: 22px; display: flex; gap: 4px; opacity: 0.5; transition: opacity 0.2s; }
+.kanban-card:hover .kanban-card-actions { opacity: 1; }
+.kanban-card-action { width: 20px; height: 20px; border-radius: 6px; background: rgba(255,255,255,0.9); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--muted-fg); transition: all 0.2s; }
+.kanban-card-action:hover { background: var(--accent-pink); color: #fff; border-color: var(--accent-pink); }
+.kanban-card-action svg { width: 11px; height: 11px; }
+.kanban-avatar-name { width: auto; min-width: 22px; padding: 0 4px; font-size: 9px; border-radius: 11px; }
+
+/* 状态进度条 */
+.status-bar { display: flex; align-items: center; justify-content: space-between; margin: 8px 0 10px; padding: 0 2px; }
+.status-step { display: flex; align-items: center; flex: 1; cursor: pointer; position: relative; }
+.status-step:last-child { flex: 0 0 auto; }
+.status-dot { width: 10px; height: 10px; border-radius: 50%; transition: all 0.2s; flex-shrink: 0; z-index: 1; }
+.status-dot.current { transform: scale(1.3); }
+.status-dot.done { opacity: 0.8; }
+.status-line { flex: 1; height: 2px; margin: 0 3px; border-radius: 1px; transition: background 0.2s; }
+.status-step:hover .status-dot { transform: scale(1.4); }
+.status-step:hover .status-dot.current { transform: scale(1.5); }
+
+/* 项目进度概览 */
+.project-overview { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.project-overview-card { background: #fff; border-radius: 14px; padding: 14px 16px; border: 1px solid var(--border); box-shadow: 0 1px 4px rgba(200,112,144,0.06); transition: all 0.2s; cursor: pointer; position: relative; }
+.project-overview-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(200,112,144,0.1); border-color: var(--accent-pink); }
+.project-overview-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.project-overview-name { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--foreground); }
+.project-overview-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.project-overview-status { font-size: 10px; padding: 2px 8px; border-radius: 10px; background: var(--app-shell); color: var(--muted-fg); }
+.project-overview-stats { display: flex; gap: 12px; margin-bottom: 10px; }
+.project-overview-stat { text-align: center; }
+.project-overview-stat-value { font-size: 16px; font-weight: 700; color: var(--foreground); }
+.project-overview-stat-label { font-size: 10px; color: var(--muted-fg); }
+.project-overview-progress { height: 6px; background: var(--app-shell); border-radius: 3px; overflow: hidden; margin-bottom: 6px; }
+.project-overview-progress-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+.project-overview-footer { display: flex; justify-content: space-between; align-items: center; }
+.project-overview-percent { font-size: 12px; font-weight: 600; color: var(--primary); }
+.project-overview-deadline { font-size: 10px; color: var(--muted-fg); }
+
+/* 项目列表 */
+.project-list-item { display: flex; align-items: center; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; background: #fff; transition: all 0.2s; }
+.project-list-item:hover { border-color: var(--accent-pink); background: var(--app-shell); }
+.project-list-dot { width: 12px; height: 12px; border-radius: 50%; margin-right: 10px; flex-shrink: 0; }
+.project-list-info { flex: 1; }
+.project-list-name { font-size: 13px; font-weight: 600; color: var(--foreground); }
+.project-list-meta { font-size: 11px; color: var(--muted-fg); margin-top: 2px; }
+.project-list-actions { display: flex; gap: 6px; }
+.project-list-btn { width: 28px; height: 28px; border-radius: 7px; border: 1px solid var(--border); background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--muted-fg); transition: all 0.2s; }
+.project-list-btn:hover { background: var(--accent-pink); color: #fff; border-color: var(--accent-pink); }
+.project-list-btn.delete:hover { background: #E88080; border-color: #E88080; }
+.project-list-btn svg { width: 14px; height: 14px; }
+
+/* 颜色选择器 */
+.color-option { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: all 0.2s; }
+.color-option:hover { transform: scale(1.1); }
+.color-option.selected { border-color: var(--foreground); }
+
+/* ===== 新媒体数据 ===== */
+.fetch-panel {
+  background: linear-gradient(135deg, #FFF0F2 0%, #FFF8F8 100%);
+  border-radius: 16px; padding: 20px 24px; margin-bottom: 16px;
+  border: 1px solid rgba(232,160,176,0.2);
+}
+.fetch-panel-title { font-size: 15px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+.fetch-panel-desc { font-size: 12px; color: var(--muted-fg); margin-bottom: 14px; }
+.fetch-form { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+.fetch-field { flex: 1; min-width: 200px; }
+.fetch-label { font-size: 11px; font-weight: 600; color: var(--muted-fg); margin-bottom: 6px; display: block; }
+.fetch-input, .fetch-select {
+  width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px;
+  font-size: 13px; color: var(--foreground); background: #fff; font-family: inherit; outline: none; transition: all 0.2s;
+}
+.fetch-input:focus, .fetch-select:focus { border-color: var(--accent-pink); box-shadow: 0 0 0 3px rgba(232,160,176,0.15); }
+.fetch-select { cursor: pointer; }
+
+.fetch-result { margin-top: 16px; display: none; }
+.fetch-result.show { display: block; animation: fadeInUp 0.4s ease; }
+.fetch-loading {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  padding: 30px; color: var(--muted-fg); font-size: 13px;
+}
+.spinner {
+  width: 24px; height: 24px; border: 3px solid var(--light-pink);
+  border-top-color: var(--accent-pink); border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.account-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+.account-card {
+  background: var(--app-shell); border-radius: 16px; padding: 18px;
+  border: 1px solid rgba(240,224,229,0.6); box-shadow: 0 2px 12px var(--shadow-color);
+  transition: transform 0.2s;
+}
+.account-card:hover { transform: translateY(-2px); }
+.account-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.account-avatar {
+  width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center;
+  font-size: 20px; font-weight: 700; color: #fff; flex-shrink: 0;
+}
+.account-info { flex: 1; min-width: 0; }
+.account-name { font-size: 14px; font-weight: 600; color: var(--foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.account-handle { font-size: 11px; color: var(--muted-fg); margin-top: 2px; }
+.account-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding-top: 14px; border-top: 1px solid var(--border); }
+.account-stat { text-align: center; }
+.account-stat-value { font-size: 18px; font-weight: 700; color: var(--primary); font-variant-numeric: tabular-nums; }
+.account-stat-label { font-size: 10px; color: var(--muted-fg); margin-top: 2px; }
+
+/* 账号关闭按钮 */
+.account-close {
+  position: absolute; top: 10px; right: 10px;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--muted-surface); color: var(--muted-fg);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.2s; z-index: 2;
+  opacity: 0;
+}
+.account-card:hover .account-close { opacity: 1; }
+.account-close:hover { background: var(--danger); color: #fff; transform: scale(1.1); }
+.account-close svg { width: 12px; height: 12px; }
+
+/* 添加账号卡片 */
+.account-add-card {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  border: 2px dashed var(--border); background: var(--muted-surface);
+  cursor: pointer; transition: all 0.2s; min-height: 140px;
+}
+.account-add-card:hover { border-color: var(--accent-pink); background: var(--lavender-wash); transform: translateY(-2px); }
+.account-add-icon {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--light-pink); color: var(--accent-deep-pink);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 10px;
+}
+.account-add-icon svg { width: 20px; height: 20px; }
+.account-add-text { font-size: 13px; font-weight: 600; color: var(--muted-fg); }
+
+.chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.chart-container {
+  background: var(--app-shell); border-radius: 16px; padding: 18px;
+  border: 1px solid rgba(240,224,229,0.6); box-shadow: 0 2px 12px var(--shadow-color);
+}
+.chart-box { width: 100%; height: 260px; }
+
+/* 高赞内容 */
+.hot-content-item {
+  display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border);
+  transition: background 0.2s;
+}
+.hot-content-item:hover { background: var(--muted-surface); margin: 0 -10px; padding-left: 10px; padding-right: 10px; border-radius: 8px; }
+.hot-content-item:last-child { border-bottom: none; }
+.hot-content-thumb {
+  width: 72px; height: 72px; border-radius: 10px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; font-weight: 700; color: #fff;
+}
+.hot-content-info { flex: 1; min-width: 0; }
+.hot-content-title { font-size: 13px; font-weight: 600; color: var(--foreground); margin-bottom: 6px; line-height: 1.4; }
+.hot-content-meta { font-size: 11px; color: var(--muted-fg); display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+.hot-content-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.hot-content-actions { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; flex-shrink: 0; }
+.hot-content-stats { text-align: right; }
+.hot-content-stat-value { font-size: 14px; font-weight: 700; color: var(--primary); font-variant-numeric: tabular-nums; }
+.hot-content-stat-label { font-size: 10px; color: var(--muted-fg); }
+.btn-mini {
+  padding: 4px 10px; border-radius: 999px; font-size: 10px; font-weight: 600;
+  cursor: pointer; border: none; transition: all 0.2s; font-family: inherit;
+  background: var(--light-pink); color: var(--accent-deep-pink);
+}
+.btn-mini:hover { background: var(--accent-pink); color: #fff; }
+
+/* 内容标签分析 */
+.tag-analysis { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 0; }
+.tag-analysis-item {
+  padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 500;
+  cursor: pointer; transition: all 0.2s; border: 1px solid transparent;
+  background: var(--muted-surface); color: var(--foreground);
+}
+.tag-analysis-item:hover { background: var(--lavender-wash); border-color: var(--accent-pink); transform: scale(1.05); }
+.tag-analysis-item.hot { background: rgba(232,160,176,0.2); color: var(--accent-deep-pink); font-weight: 600; }
+.tag-analysis-item .ta-count { font-size: 10px; color: var(--muted-fg); margin-left: 4px; }
+
+/* ===== 选题灵感 ===== */
+.idea-search-panel {
+  background: linear-gradient(135deg, #FFF0F2 0%, #FFF8F8 100%);
+  border-radius: 16px; padding: 20px 24px; margin-bottom: 16px;
+  border: 1px solid rgba(232,160,176,0.2);
+}
+.idea-search-title { font-size: 15px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+.idea-search-desc { font-size: 12px; color: var(--muted-fg); margin-bottom: 14px; }
+.idea-search-row { display: flex; gap: 10px; align-items: center; }
+.idea-search-input-wrap {
+  flex: 1; height: 44px; background: #fff; border-radius: 999px;
+  display: flex; align-items: center; padding: 0 18px; gap: 10px;
+  border: 1px solid var(--border); transition: all 0.2s;
+}
+.idea-search-input-wrap:focus-within { border-color: var(--accent-pink); box-shadow: 0 0 0 3px rgba(232,160,176,0.15); }
+.idea-search-input-wrap svg { width: 16px; height: 16px; color: var(--muted-fg); flex-shrink: 0; }
+.idea-search-input {
+  border: none; background: transparent; outline: none; font-size: 14px;
+  color: var(--foreground); width: 100%; font-family: inherit;
+}
+.idea-search-input::placeholder { color: var(--muted-fg); }
+
+.idea-filter-tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.idea-filter-tab {
+  padding: 6px 16px; border-radius: 999px; font-size: 12px; font-weight: 600;
+  cursor: pointer; background: var(--app-shell); color: var(--muted-fg);
+  border: 1px solid var(--border); transition: all 0.2s;
+}
+.idea-filter-tab:hover { color: var(--primary); }
+.idea-filter-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+.keyword-suggestions { margin-top: 14px; display: none; }
+.keyword-suggestions.show { display: block; animation: fadeInUp 0.3s ease; }
+.keyword-suggestions-label { font-size: 11px; font-weight: 600; color: var(--muted-fg); margin-bottom: 8px; }
+.keyword-suggestion-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.keyword-suggestion-item {
+  padding: 5px 12px; border-radius: 999px; font-size: 11px; font-weight: 500;
+  cursor: pointer; background: #fff; color: var(--accent-deep-pink);
+  border: 1px solid var(--light-pink); transition: all 0.2s;
+  display: flex; align-items: center; gap: 4px;
+}
+.keyword-suggestion-item:hover { background: var(--light-pink); transform: scale(1.05); }
+.keyword-suggestion-item svg { width: 10px; height: 10px; }
+
+.ideas-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.idea-card {
+  background: var(--app-shell); border-radius: 16px; padding: 18px;
+  border: 1px solid rgba(240,224,229,0.6); box-shadow: 0 2px 12px var(--shadow-color);
+  cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden;
+}
+.idea-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(200,112,144,0.12); }
+.idea-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; }
+.idea-card:nth-child(4n+1)::before { background: var(--accent-pink); }
+.idea-card:nth-child(4n+2)::before { background: var(--accent-orange); }
+.idea-card:nth-child(4n+3)::before { background: var(--accent-green); }
+.idea-card:nth-child(4n+4)::before { background: var(--accent-purple); }
+
+.idea-type { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+.idea-title { font-size: 15px; font-weight: 700; color: var(--primary); margin-bottom: 8px; line-height: 1.4; }
+.idea-desc { font-size: 12px; color: var(--muted-fg); line-height: 1.6; margin-bottom: 14px; }
+.idea-footer { display: flex; align-items: center; justify-content: space-between; }
+.idea-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.idea-heat { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: var(--accent-deep-pink); }
+.idea-heat svg { width: 13px; height: 13px; }
+
+.empty-ideas { text-align: center; padding: 40px 20px; color: var(--muted-fg); }
+.empty-ideas svg { width: 40px; height: 40px; margin-bottom: 12px; opacity: 0.4; }
+.empty-ideas-text { font-size: 13px; }
+
+/* 内容支柱标签 */
+.pillar-tag {
+  display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 6px;
+  font-size: 10px; font-weight: 600; margin-right: 6px;
+}
+.pillar-ip { background: rgba(232,160,176,0.2); color: var(--accent-deep-pink); }
+.pillar-product { background: rgba(240,200,168,0.25); color: #B88860; }
+.pillar-lifestyle { background: rgba(184,216,200,0.25); color: #609880; }
+.pillar-knowledge { background: rgba(216,200,216,0.3); color: #887098; }
+
+/* ===== 行业分析 ===== */
+.industry-overview { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+.industry-stat {
+  background: var(--app-shell); border-radius: 16px; padding: 18px;
+  border: 1px solid rgba(240,224,229,0.6); box-shadow: 0 2px 12px var(--shadow-color); text-align: center;
+}
+.industry-stat-value { font-size: 28px; font-weight: 700; color: var(--primary); font-variant-numeric: tabular-nums; margin-bottom: 4px; }
+.industry-stat-label { font-size: 12px; color: var(--muted-fg); font-weight: 500; }
+.industry-stat-sub { font-size: 10px; color: #609880; margin-top: 4px; font-weight: 600; }
+
+.competitor-table { width: 100%; border-collapse: collapse; }
+.competitor-table th {
+  text-align: left; font-size: 11px; font-weight: 600; color: var(--muted-fg);
+  padding: 10px 12px; border-bottom: 2px solid var(--border); text-transform: uppercase; letter-spacing: 0.05em;
+}
+.competitor-table td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--foreground); }
+.competitor-table tr:hover td { background: var(--muted-surface); }
+.competitor-brand { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+.competitor-logo {
+  width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: #fff;
+}
+.price-bar { height: 6px; background: var(--muted-surface); border-radius: 3px; overflow: hidden; margin-top: 4px; }
+.price-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--accent-pink), var(--accent-orange)); }
+
+/* ===== 行业动态 & 品牌资讯 ===== */
+.news-panel {
+  background: var(--app-shell); border-radius: 16px; padding: 20px 24px;
+  margin-bottom: 16px; border: 1px solid rgba(240,224,229,0.6);
+  box-shadow: 0 2px 12px var(--shadow-color);
+}
+.news-panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--border);
+}
+.news-panel-title {
+  font-size: 16px; font-weight: 700; color: var(--primary);
+  display: flex; align-items: center; gap: 8px;
+}
+.news-panel-actions { display: flex; align-items: center; gap: 12px; }
+.news-update-time { font-size: 11px; color: var(--muted-fg); }
+.news-loading {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  padding: 40px; color: var(--muted-fg); font-size: 13px;
+}
+.news-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.news-column-title {
+  font-size: 13px; font-weight: 600; color: var(--foreground);
+  display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+  padding-bottom: 8px; border-bottom: 1px dashed var(--border);
+}
+.news-column-dot { width: 8px; height: 8px; border-radius: 50%; }
+.news-item {
+  padding: 12px 0; border-bottom: 1px solid var(--border);
+  cursor: pointer; transition: all 0.2s;
+}
+.news-item:hover { padding-left: 8px; background: var(--muted-surface); margin: 0 -8px; padding-right: 8px; border-radius: 8px; }
+.news-item:last-child { border-bottom: none; }
+.news-item-date { font-size: 10px; color: var(--muted-fg); font-weight: 500; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+.news-item-source { background: var(--lavender-wash); color: var(--accent-deep-pink); padding: 1px 6px; border-radius: 4px; font-size: 9px; }
+.news-item-title { font-size: 13px; font-weight: 600; color: var(--foreground); margin-bottom: 4px; line-height: 1.4; }
+.news-item-desc { font-size: 11px; color: var(--muted-fg); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.brand-item {
+  padding: 12px 0; border-bottom: 1px solid var(--border);
+  cursor: pointer; transition: all 0.2s;
+}
+.brand-item:hover { padding-left: 8px; background: var(--muted-surface); margin: 0 -8px; padding-right: 8px; border-radius: 8px; }
+.brand-item:last-child { border-bottom: none; }
+.brand-item-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.brand-item-name { font-size: 13px; font-weight: 700; color: var(--primary); }
+.brand-item-date { font-size: 10px; color: var(--muted-fg); }
+.brand-item-desc { font-size: 11px; color: var(--muted-fg); line-height: 1.5; margin-bottom: 6px; }
+.brand-item-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.news-sentiment { font-size: 9px; padding: 1px 5px; border-radius: 3px; font-weight: 600; margin-left: 4px; }
+.news-sentiment-negative { background: #FDE8E8; color: #D44; }
+.news-sentiment-positive { background: #E8F5E9; color: #4A8; }
+.news-sentiment-neutral { background: #F0F0F0; color: #888; }
+.news-sentiment-mixed { background: #FFF3E0; color: #E89020; }
+
+/* ===== 模态框 ===== */
+.modal-overlay {
+  display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(92,74,92,0.35); backdrop-filter: blur(4px); z-index: 1000;
+  align-items: center; justify-content: center;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: var(--app-shell); border-radius: 20px; padding: 24px;
+  width: 480px; max-width: 90vw; max-height: 80vh; overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(92,74,92,0.25); animation: modalIn 0.3s ease;
+}
+@keyframes modalIn { from { opacity: 0; transform: scale(0.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.modal-title { font-size: 18px; font-weight: 700; color: var(--primary); margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; }
+.modal-close {
+  width: 28px; height: 28px; border-radius: 50%; background: var(--muted-surface);
+  display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--muted-fg); transition: all 0.2s;
+}
+.modal-close:hover { background: var(--lavender-wash); color: var(--primary); }
+.modal-close svg { width: 14px; height: 14px; }
+
+.form-group { margin-bottom: 16px; }
+.form-label { display: block; font-size: 12px; font-weight: 600; color: var(--foreground); margin-bottom: 6px; }
+.form-input, .form-textarea, .form-select {
+  width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px;
+  font-size: 13px; color: var(--foreground); background: var(--app-shell); font-family: inherit; transition: all 0.2s; outline: none;
+}
+.form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--accent-pink); box-shadow: 0 0 0 3px rgba(232,160,176,0.1); }
+.form-textarea { resize: vertical; min-height: 80px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--primary); color: #fff; padding: 12px 24px; border-radius: 999px;
+  font-size: 13px; font-weight: 500; box-shadow: 0 8px 24px rgba(92,74,92,0.3);
+  opacity: 0; transition: all 0.3s; z-index: 2000; pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* 滚动条 */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted-fg); }
+
+/* 数据来源提示 */
+.data-source-note {
+  font-size: 10px; color: var(--muted-fg); padding: 8px 12px;
+  background: var(--muted-surface); border-radius: 8px; margin-top: 12px;
+  display: flex; align-items: center; gap: 6px;
+}
+.data-source-note svg { width: 12px; height: 12px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <!-- 左侧导航 -->
+  <nav class="sidebar">
+    <div class="logo" onclick="navigate('dashboard')">
+      <div class="logo-layer"></div>
+      <div class="logo-layer"></div>
+      <div class="logo-layer"></div>
+    </div>
+    <div class="nav-item active" data-route="dashboard" onclick="navigate('dashboard')" title="总览">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    </div>
+    <div class="nav-item" data-route="projects" onclick="navigate('projects')" title="项目看板">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      <span class="nav-badge">5</span>
+    </div>
+    <div class="nav-item" data-route="media" onclick="navigate('media')" title="新媒体数据">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/></svg>
+    </div>
+    <div class="nav-item" data-route="ideas" onclick="navigate('ideas')" title="选题灵感">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg>
+    </div>
+    <div class="nav-item" data-route="industry" onclick="navigate('industry')" title="行业分析">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="nav-item" title="设置">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </div>
+      <div class="avatar" title="草莓团队">草</div>
+    </div>
+  </nav>
+
+  <!-- 主内容区 -->
+  <div class="main-area">
+    <header class="topbar">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" placeholder="搜索项目、选题、竞品、内容..." id="globalSearch">
+      </div>
+      <div class="topbar-actions">
+        <div class="icon-btn" title="通知" onclick="showToast('暂无新通知')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+          <span class="dot"></span>
+        </div>
+        <div class="icon-btn" title="帮助" onclick="showToast('工作台使用指南：点击左侧导航切换模块')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+        </div>
+      </div>
+    </header>
+
+    <main class="content">
+      <!-- ===== 总览仪表盘 ===== -->
+      <section class="view active" id="view-dashboard">
+        <div class="hero-card">
+          <div class="hero-content">
+            <div class="hero-eyebrow">CAOMEI CREATOR STUDIO</div>
+            <div class="hero-title">草莓 · 毛巾浴巾创作者工作台</div>
+            <div class="hero-desc">产品研发 · 新媒体运营 · 内容创作 · 行业洞察，一站式协同管理</div>
+          </div>
+          <div class="hero-stats">
+            <div class="hero-stat"><div class="hero-stat-value">5</div><div class="hero-stat-label">进行中项目</div></div>
+            <div class="hero-stat"><div class="hero-stat-value">4</div><div class="hero-stat-label">运营账号</div></div>
+            <div class="hero-stat"><div class="hero-stat-value">12</div><div class="hero-stat-label">本周待办</div></div>
+          </div>
+        </div>
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>全平台粉丝</div>
+            <div class="metric-value">29.8万</div>
+            <div class="metric-change up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>+12.3% 本周</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>本周发布内容</div>
+            <div class="metric-value">8</div>
+            <div class="metric-change up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>+3 篇</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>项目完成率</div>
+            <div class="metric-value">68%</div>
+            <div class="metric-change up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>+5% 本月</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>内容互动量</div>
+            <div class="metric-value">15.2万</div>
+            <div class="metric-change up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>+28.6% 本周</div>
+          </div>
+        </div>
+        <div class="dashboard-grid">
+          <div class="card">
+            <div class="card-title">项目进度概览<span class="more" onclick="navigate('projects')">查看全部 →</span></div>
+            <div id="dashboard-projects"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">今日待办<span class="more" onclick="navigate('projects')">全部任务 →</span></div>
+            <div id="dashboard-tasks"></div>
+          </div>
+        </div>
+        <div class="dashboard-grid">
+          <div class="card">
+            <div class="card-title">粉丝增长趋势（近30天）<span class="more">全平台</span></div>
+            <div id="dashboard-fans-chart" class="chart-box" style="height:240px"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">热门选题方向<span class="more" onclick="navigate('ideas')">更多灵感 →</span></div>
+            <div id="dashboard-ideas"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 项目看板 ===== -->
+      <section class="view" id="view-projects">
+        <div class="page-header">
+          <div>
+            <div class="page-title">项目看板</div>
+            <div class="page-subtitle">毛巾浴巾产品研发全流程进度跟踪，拖拽卡片更新状态</div>
+          </div>
+          <div style="display:flex;gap:10px">
+            <button class="btn btn-secondary" onclick="openProjectModal()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3z"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>管理项目
+            </button>
+            <button class="btn btn-primary" onclick="openTaskModal()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>新建任务
+            </button>
+          </div>
+        </div>
+        <!-- 项目进度概览 -->
+        <div class="project-overview" id="projectOverview"></div>
+        <div class="kanban-board" id="kanbanBoard"></div>
+      </section>
+
+      <!-- ===== 新媒体数据 ===== -->
+      <section class="view" id="view-media">
+        <div class="page-header">
+          <div>
+            <div class="page-title">新媒体数据中心</div>
+            <div class="page-subtitle">输入账号ID/URL，智能抓取分析粉丝数据与高赞内容，联动选题灵感</div>
+          </div>
+        </div>
+
+        <!-- 账号抓取分析面板 -->
+        <div class="fetch-panel">
+          <div class="fetch-panel-title">账号抓取分析</div>
+          <div class="fetch-panel-desc">选择平台并输入账号ID或主页链接，系统将分析账号数据、高赞内容及内容标签，并可一键生成选题灵感</div>
+          <div class="fetch-form">
+            <div class="fetch-field" style="flex:0 0 140px">
+              <label class="fetch-label">平台</label>
+              <select class="fetch-select" id="fetchPlatform">
+                <option value="douyin">抖音</option>
+                <option value="xhs">小红书</option>
+                <option value="wx">视频号</option>
+              </select>
+            </div>
+            <div class="fetch-field">
+              <label class="fetch-label">账号ID / 主页链接</label>
+              <input type="text" class="fetch-input" id="fetchAccountId" placeholder="例如：@caomei_life 或 https://www.douyin.com/user/xxx">
+            </div>
+            <button class="btn btn-pink" id="fetchBtn" onclick="fetchAccount()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>抓取分析
+            </button>
+          </div>
+
+          <!-- 抓取结果 -->
+          <div class="fetch-result" id="fetchResult">
+            <div class="fetch-loading" id="fetchLoading">
+              <div class="spinner"></div>
+              <span>正在抓取并分析账号数据...</span>
+            </div>
+            <div id="fetchContent" style="display:none">
+              <div class="account-cards" id="fetchAccountCards" style="margin-top:0"></div>
+              <div class="data-source-note">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                数据为智能分析示例，真实抓取需接入第三方数据API（如新红、飞瓜、新抖）。接入后替换数据源即可。
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 已有账号概览 -->
+        <div class="account-cards" id="accountCards"></div>
+
+        <div class="chart-row">
+          <div class="chart-container">
+            <div class="card-title">粉丝增长趋势</div>
+            <div id="fansTrendChart" class="chart-box"></div>
+          </div>
+          <div class="chart-container">
+            <div class="card-title">内容互动分布</div>
+            <div id="interactionChart" class="chart-box"></div>
+          </div>
+        </div>
+
+        <!-- 高赞内容分析 -->
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-title">
+            高赞内容分析
+            <span class="more">点击「生成选题」联动灵感库</span>
+          </div>
+          <div id="hotContentList"></div>
+        </div>
+
+        <!-- 内容标签分析 -->
+        <div class="card">
+          <div class="card-title">
+            内容标签分析
+            <span class="more">基于高赞内容提取的高频关键词</span>
+          </div>
+          <div class="tag-analysis" id="tagAnalysis"></div>
+        </div>
+      </section>
+
+      <!-- ===== 选题灵感 ===== -->
+      <section class="view" id="view-ideas">
+        <div class="page-header">
+          <div>
+            <div class="page-title">选题灵感库</div>
+            <div class="page-subtitle">输入关键词智能检索推荐，覆盖人物IP内容与产品推荐两大方向</div>
+          </div>
+          <button class="btn btn-pink" onclick="showToast('正在生成新选题...')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>AI 生成选题
+          </button>
+        </div>
+
+        <!-- 关键词搜索面板 -->
+        <div class="idea-search-panel">
+          <div class="idea-search-title">关键词智能检索</div>
+          <div class="idea-search-desc">输入人物、场景、产品等关键词，系统推荐相关选题方向与内容角度。IP内容不仅限于产品推荐，更关注人物本身的生活态度与故事。</div>
+          <div class="idea-search-row">
+            <div class="idea-search-input-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              <input type="text" class="idea-search-input" id="ideaSearchInput" placeholder="输入关键词，例如：晨间routine、独居生活、浴巾测评、女生爱自己..." oninput="searchIdeas(this.value)">
+            </div>
+            <button class="btn btn-pink" onclick="triggerIdeaSearch()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>搜索推荐
+            </button>
+          </div>
+          <div class="keyword-suggestions" id="keywordSuggestions">
+            <div class="keyword-suggestions-label">相关关键词推荐（点击筛选）：</div>
+            <div class="keyword-suggestion-list" id="keywordSuggestionList"></div>
+          </div>
+        </div>
+
+        <!-- 内容支柱筛选 -->
+        <div class="idea-filter-tabs">
+          <div class="idea-filter-tab active" data-pillar="all" onclick="filterIdeas('all')">全部</div>
+          <div class="idea-filter-tab" data-pillar="ip" onclick="filterIdeas('ip')">人物IP内容</div>
+          <div class="idea-filter-tab" data-pillar="product" onclick="filterIdeas('product')">产品推荐</div>
+          <div class="idea-filter-tab" data-pillar="lifestyle" onclick="filterIdeas('lifestyle')">生活方式</div>
+          <div class="idea-filter-tab" data-pillar="knowledge" onclick="filterIdeas('knowledge')">知识科普</div>
+        </div>
+
+        <!-- 选题卡片 -->
+        <div class="ideas-grid" id="ideasGrid"></div>
+        <div class="empty-ideas" id="emptyIdeas" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <div class="empty-ideas-text">没有找到匹配的选题，试试其他关键词吧</div>
+        </div>
+
+        <!-- 高赞内容参考 -->
+        <div class="card" style="margin-top:16px">
+          <div class="card-title">高赞内容参考<span class="more">来自抖音 / 小红书 / 视频号</span></div>
+          <div id="referenceList"></div>
+        </div>
+      </section>
+
+      <!-- ===== 行业分析 ===== -->
+      <section class="view" id="view-industry">
+        <div class="page-header">
+          <div>
+            <div class="page-title">行业分析</div>
+            <div class="page-subtitle">毛巾浴巾行业市场规模、竞品格局、价格带与材质趋势</div>
+          </div>
+          <button class="btn btn-secondary" onclick="showToast('导出行业分析报告中...')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>导出报告
+          </button>
+        </div>
+
+        <!-- 顶部：行业动态 + 品牌资讯 -->
+        <div class="news-panel">
+          <div class="news-panel-header">
+            <div class="news-panel-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;color:var(--accent-deep-pink)"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>
+              行业动态 & 品牌资讯
+            </div>
+            <div class="news-panel-actions">
+              <div style="text-align:right">
+                <span class="news-update-time" id="newsUpdateTime">最后更新：2026-09-05 01:30</span>
+                <div style="font-size:10px;color:var(--muted-fg);margin-top:2px">数据来源：舆情调研 + 跨境商品信息优化</div>
+              </div>
+              <button class="btn btn-pink" id="refreshNewsBtn" onclick="refreshNews()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                刷新检索
+              </button>
+            </div>
+          </div>
+          <div class="news-loading" id="newsLoading" style="display:none">
+            <div class="spinner"></div>
+            <span>正在检索行业动态与品牌最新资讯...</span>
+          </div>
+          <div class="news-grid" id="newsGrid">
+            <!-- 左：行业动态 -->
+            <div class="news-column">
+              <div class="news-column-title">
+                <span class="news-column-dot" style="background:var(--accent-pink)"></span>
+                行业动态
+              </div>
+              <div id="industryNewsList"></div>
+            </div>
+            <!-- 右：品牌资讯 -->
+            <div class="news-column">
+              <div class="news-column-title">
+                <span class="news-column-dot" style="background:var(--accent-orange)"></span>
+                重点品牌资讯
+              </div>
+              <div id="brandNewsList"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="industry-overview">
+          <div class="industry-stat"><div class="industry-stat-value">487亿</div><div class="industry-stat-label">国内毛巾浴巾市场规模</div><div class="industry-stat-sub">↑ 6.2% 同比增长</div></div>
+          <div class="industry-stat"><div class="industry-stat-value">96.7亿</div><div class="industry-stat-label">中国浴巾市场规模</div><div class="industry-stat-sub">预计2032年达1560亿</div></div>
+          <div class="industry-stat"><div class="industry-stat-value">39.8%</div><div class="industry-stat-label">B端定制化订单占比</div><div class="industry-stat-sub">↑ 11.3% 较2023年</div></div>
+          <div class="industry-stat"><div class="industry-stat-value">65%</div><div class="industry-stat-label">棉质基础款市场占比</div><div class="industry-stat-sub">差异化材质增长23%</div></div>
+        </div>
+        <div class="chart-row">
+          <div class="chart-container"><div class="card-title">市场规模趋势（亿元）</div><div id="marketChart" class="chart-box"></div></div>
+          <div class="chart-container"><div class="card-title">材质分布</div><div id="materialChart" class="chart-box"></div></div>
+        </div>
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-title">主要竞品对比<span class="more">数据来源：电商平台公开信息</span></div>
+          <table class="competitor-table">
+            <thead><tr><th>品牌</th><th>定位</th><th>价格带（毛巾）</th><th>价格带（浴巾）</th><th>核心卖点</th><th>新媒体表现</th></tr></thead>
+            <tbody id="competitorTable"></tbody>
+          </table>
+        </div>
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-title">价格带分布</div>
+          <div id="priceRangeChart" class="chart-box" style="height:280px"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- 新建任务模态框 -->
+<div class="modal-overlay" id="taskModal">
+  <div class="modal">
+    <div class="modal-title">新建任务<div class="modal-close" onclick="closeTaskModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div></div>
+    <div class="form-group"><label class="form-label">任务名称</label><input type="text" class="form-input" id="taskTitle" placeholder="例如：纯棉浴巾打样确认"></div>
+    <div class="form-group"><label class="form-label">任务描述</label><textarea class="form-textarea" id="taskDesc" placeholder="详细描述任务内容和要求..."></textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">所属项目</label><select class="form-select" id="taskProject"></select></div>
+      <div class="form-group"><label class="form-label">优先级</label><select class="form-select" id="taskPriority"><option value="high">高优先级</option><option value="medium" selected>中优先级</option><option value="low">低优先级</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">负责人</label><input type="text" class="form-input" id="taskAssignee" placeholder="负责人姓名"></div>
+      <div class="form-group"><label class="form-label">截止日期</label><input type="date" class="form-input" id="taskDue"></div>
+    </div>
+    <div class="form-actions"><button class="btn btn-secondary" onclick="closeTaskModal()">取消</button><button class="btn btn-primary" onclick="createTask()">创建任务</button></div>
+  </div>
+</div>
+
+<!-- 项目管理模态框 -->
+<div class="modal-overlay" id="projectModal">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-title">所属项目管理<div class="modal-close" onclick="closeProjectModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div></div>
+    <div class="form-group">
+      <div style="display:flex;gap:10px;margin-bottom:12px">
+        <input type="text" class="form-input" id="newProjectName" placeholder="新项目名称，例如：纯棉浴巾系列" style="flex:1">
+        <button class="btn btn-primary" onclick="addProject()">添加项目</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">项目列表（点击编辑或删除）</label>
+      <div id="projectList" style="max-height:300px;overflow-y:auto"></div>
+    </div>
+    <div class="form-actions"><button class="btn btn-secondary" onclick="closeProjectModal()">关闭</button></div>
+  </div>
+</div>
+
+<!-- 编辑项目模态框 -->
+<div class="modal-overlay" id="editProjectModal">
+  <div class="modal">
+    <div class="modal-title">编辑项目<div class="modal-close" onclick="closeEditProjectModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div></div>
+    <div class="form-group"><label class="form-label">项目名称</label><input type="text" class="form-input" id="editProjectName"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">项目状态</label><select class="form-select" id="editProjectStatus"><option>未开始</option><option selected>进行中</option><option>待验收</option><option>已完成</option><option>已暂停</option></select></div>
+      <div class="form-group"><label class="form-label">截止日期</label><input type="date" class="form-input" id="editProjectDeadline"></div>
+    </div>
+    <div class="form-group"><label class="form-label">主题颜色</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap" id="editProjectColors"></div>
+    </div>
+    <div class="form-actions"><button class="btn btn-secondary" onclick="closeEditProjectModal()">取消</button><button class="btn btn-primary" onclick="saveProjectEdit()">保存修改</button></div>
+  </div>
+</div>
+
+<!-- 添加账号模态框 -->
+<div class="modal-overlay" id="addAccountModal">
+  <div class="modal">
+    <div class="modal-title">添加新媒体账号<div class="modal-close" onclick="closeAddAccountModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">平台</label><select class="form-select" id="addAccountPlatform"><option value="douyin">抖音</option><option value="xhs">小红书</option><option value="wx">视频号</option></select></div>
+      <div class="form-group"><label class="form-label">账号名称</label><input type="text" class="form-input" id="addAccountName" placeholder="例如：草莓生活馆"></div>
+    </div>
+    <div class="form-group"><label class="form-label">账号主页链接</label><input type="text" class="form-input" id="addAccountUrl" placeholder="粘贴账号主页URL，点击卡片可跳转"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">粉丝数</label><input type="text" class="form-input" id="addAccountFans" placeholder="例如：15.2万"></div>
+      <div class="form-group"><label class="form-label">获赞数</label><input type="text" class="form-input" id="addAccountLikes" placeholder="例如：86.5万"></div>
+    </div>
+    <div class="form-group"><label class="form-label">作品数</label><input type="text" class="form-input" id="addAccountVideos" placeholder="例如：42"></div>
+    <div class="form-actions"><button class="btn btn-secondary" onclick="closeAddAccountModal()">取消</button><button class="btn btn-primary" onclick="addAccount()">添加账号</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== 后端API配置 =====
+// 部署后端服务后，将此处改为你的后端地址，例如 'https://caomei-workbench.vercel.app'
+// 留空则使用本地localStorage数据模式
+const API_BASE_URL = 'https://caomei-workbench.onrender.com';
+let backendAvailable = false;
+
+async function checkBackend() {
+  if (!API_BASE_URL) return false;
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/health`, { signal: AbortSignal.timeout(3000) });
+    if (res.ok) {
+      backendAvailable = true;
+      return true;
+    }
+  } catch (e) { console.log('后端服务未连接，使用本地数据模式'); }
+  return false;
+}
+
+async function apiRequest(endpoint, options = {}) {
+  if (!backendAvailable) return null;
+  try {
+    const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+      headers: { 'Content-Type': 'application/json' },
+      ...options
+    });
+    return await res.json();
+  } catch (e) {
+    console.error('API请求失败:', e);
+    return null;
+  }
+}
+
+// 从后端同步账号数据
+async function syncAccountsFromBackend() {
+  if (!backendAvailable) return;
+  const result = await apiRequest('/api/accounts');
+  if (result && result.success && result.data) {
+    // 平台映射
+    const platformMap = { '抖音': 'douyin', '小红书': 'xhs', '视频号': 'wx' };
+    const platformColors = { douyin:'#2C2C2C', xhs:'#E84C4C', wx:'#4CAF50' };
+    // 数字格式化
+    const formatNum = (n) => {
+      n = parseInt(n) || 0;
+      if (n >= 100000000) return (n/100000000).toFixed(1) + '亿';
+      if (n >= 10000) return (n/10000).toFixed(1) + '万';
+      return n.toString();
+    };
+    // 将后端数据转换为前端格式
+    accounts = result.data.map(item => {
+      const note = item['备注'] || '';
+      const urlMatch = note.match(/https?:\/\/[^\s，。]+/);
+      const platformName = Array.isArray(item['平台']) ? item['平台'][0] : item['平台'] || '抖音';
+      const platform = platformMap[platformName] || 'douyin';
+      const weeklyGrowth = parseInt(item['本周涨粉']) || 0;
+      return {
+        id: item.id,
+        platform: platform,
+        name: item['账号名称'] || '',
+        handle: item['账号ID'] || '',
+        fans: formatNum(item['粉丝数']),
+        likes: formatNum(item['获赞数']),
+        videos: formatNum(item['作品数']),
+        fansChange: weeklyGrowth > 0 ? '+' + weeklyGrowth + ' 本周' : (weeklyGrowth < 0 ? weeklyGrowth + ' 本周' : '稳定'),
+        color: platformColors[platform] || '#5C4A5C',
+        avatar: (item['账号名称'] || '?').charAt(0),
+        verified: note.includes('认证') || note.includes('蓝V') || note.includes('企业'),
+        note: note,
+        url: urlMatch ? urlMatch[0] : ''
+      };
+    });
+    renderAccounts();
+    // 如果当前在总览页面，更新粉丝增长趋势图表
+    const currentRoute=location.hash.replace('#','')||'dashboard';
+    if(currentRoute==='dashboard'&&typeof initDashboardCharts==='function'){
+      initDashboardCharts();
+    }
+    showToast('账号数据已从飞书同步');
+  }
+}
+
+// ===== 数据存储 =====
+const STORAGE_KEY = 'caomei_workbench_v2';
+const defaultData = {
+  tasks: [
+    { id:1, title:'纯棉浴巾面料选型', desc:'对比3家供应商的新疆长绒棉面料，确定最终采购方案', project:'纯棉浴巾系列', status:'todo', priority:'high', assignee:'小林', due:'2026-09-10' },
+    { id:2, title:'浴巾尺寸与克重规格确认', desc:'确定70×140cm标准款和80×160cm加大款的克重标准', project:'纯棉浴巾系列', status:'todo', priority:'medium', assignee:'阿美', due:'2026-09-08' },
+    { id:3, title:'竹纤维毛巾打样', desc:'完成竹纤维混纺毛巾第一轮打样，测试吸水性和柔软度', project:'竹纤维毛巾系列', status:'doing', priority:'high', assignee:'大伟', due:'2026-09-12' },
+    { id:4, title:'抖音账号第一条视频拍摄', desc:'拍摄"毛巾的正确打开方式"主题短视频，时长30-45秒', project:'品牌视觉升级', status:'doing', priority:'high', assignee:'小雨', due:'2026-09-06' },
+    { id:5, title:'小红书账号定位与人设确定', desc:'确定账号定位、内容支柱和人设方向，输出定位文档', project:'品牌视觉升级', status:'doing', priority:'medium', assignee:'阿美', due:'2026-09-09' },
+    { id:6, title:'一次性浴巾包装设计', desc:'完成独立包装设计稿，包含品牌logo和产品信息', project:'一次性旅行浴巾', status:'review', priority:'medium', assignee:'小林', due:'2026-09-15' },
+    { id:7, title:'竞品价格调研完成', desc:'整理洁丽雅、金号、孚日等品牌的电商价格数据', project:'纯棉浴巾系列', status:'review', priority:'low', assignee:'大伟', due:'2026-09-05' },
+    { id:8, title:'婴儿纱布毛巾安全检测', desc:'送样检测甲醛、pH值、色牢度等安全指标', project:'婴儿纱布毛巾', status:'done', priority:'high', assignee:'小雨', due:'2026-09-03' },
+    { id:9, title:'品牌Logo最终确认', desc:'确认草莓品牌Logo设计方案和使用规范', project:'品牌视觉升级', status:'done', priority:'high', assignee:'小林', due:'2026-08-28' },
+    { id:10, title:'供应商初步筛选', desc:'筛选5家具备资质的毛巾浴巾生产供应商', project:'纯棉浴巾系列', status:'done', priority:'medium', assignee:'大伟', due:'2026-08-30' },
+  ],
+  projects: [
+    { name:'纯棉浴巾系列', progress:35, color:'#E8A0B0', status:'进行中', deadline:'2026-10-15' },
+    { name:'竹纤维毛巾系列', progress:50, color:'#F0C8A8', status:'进行中', deadline:'2026-10-30' },
+    { name:'一次性旅行浴巾', progress:70, color:'#B8D8C8', status:'待验收', deadline:'2026-09-25' },
+    { name:'婴儿纱布毛巾', progress:90, color:'#D8C8D8', status:'即将完成', deadline:'2026-09-10' },
+    { name:'品牌视觉升级', progress:60, color:'#F0D8A8', status:'进行中', deadline:'2026-09-20' },
+  ]
+};
+let data = loadData();
+function loadData(){ try{ const s=localStorage.getItem(STORAGE_KEY); if(s) return JSON.parse(s); }catch(e){} return JSON.parse(JSON.stringify(defaultData)); }
+function saveData(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }catch(e){} }
+
+// ===== 路由 =====
+function navigate(route){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const view=document.getElementById('view-'+route); if(view) view.classList.add('active');
+  const nav=document.querySelector(`.nav-item[data-route="${route}"]`); if(nav) nav.classList.add('active');
+  location.hash=route;
+  setTimeout(()=>{ if(route==='dashboard') initDashboardCharts(); if(route==='media') initMediaCharts(); if(route==='industry') initIndustryCharts(); },50);
+}
+window.addEventListener('hashchange',()=>{ const r=location.hash.replace('#','')||'dashboard'; navigate(r); });
+
+// ===== 仪表盘渲染 =====
+function renderDashboardProjects(){
+  document.getElementById('dashboard-projects').innerHTML = data.projects.map(p=>`
+    <div class="project-row">
+      <div class="project-dot" style="background:${p.color}"></div>
+      <div class="project-info"><div class="project-name">${p.name}</div><div class="project-meta">${p.status} · 截止 ${p.deadline}</div></div>
+      <div class="project-progress"><div class="project-progress-fill" style="width:${p.progress}%;background:${p.color}"></div></div>
+      <div class="project-percent">${p.progress}%</div>
+    </div>`).join('');
+}
+function renderDashboardTasks(){
+  const todayTasks=data.tasks.filter(t=>t.status!=='done').slice(0,5);
+  document.getElementById('dashboard-tasks').innerHTML=todayTasks.map(t=>`
+    <div class="task-item ${t.status==='done'?'done':''}">
+      <div class="task-checkbox ${t.status==='done'?'checked':''}" onclick="toggleTask(${t.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="task-content"><div class="task-text">${t.title}</div><div class="task-meta"><span class="tag tag-${t.priority==='high'?'pink':t.priority==='medium'?'orange':'brown'}">${t.priority==='high'?'高优':t.priority==='medium'?'中优':'低优'}</span><span>${t.project}</span><span>截止 ${t.due}</span></div></div>
+    </div>`).join('');
+}
+function renderDashboardIdeas(){
+  const ideas=[
+    {title:'我的晨间routine｜从一条柔软毛巾开始',type:'人物IP',heat:'高'},
+    {title:'女生要对自己好一点｜浴室里的小确幸',type:'生活方式',heat:'高'},
+    {title:'5款网红浴巾实测，最贵的居然最难用',type:'测评类',heat:'中'},
+    {title:'一个人住的第三年，我学会了爱自己',type:'情感共鸣',heat:'中'},
+  ];
+  document.getElementById('dashboard-ideas').innerHTML=ideas.map(i=>`
+    <div style="padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="navigate('ideas')">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <span style="font-size:13px;font-weight:600;color:var(--foreground)">${i.title}</span>
+        <span class="tag tag-${i.heat==='高'?'pink':'orange'}">${i.heat}热度</span>
+      </div>
+      <span style="font-size:11px;color:var(--muted-fg)">${i.type}</span>
+    </div>`).join('');
+}
+
+let dashboardFansChart=null;
+function parseFansNum(fansStr){
+  if(!fansStr||fansStr==='--')return 0;
+  const s=String(fansStr).trim();
+  if(s.includes('万')){
+    return parseFloat(s.replace('万',''))*10000;
+  }
+  if(s.includes('亿')){
+    return parseFloat(s.replace('亿',''))*100000000;
+  }
+  return parseInt(s.replace(/[^0-9]/g,''))||0;
+}
+function initDashboardCharts(){
+  const el=document.getElementById('dashboard-fans-chart');
+  if(!el||typeof echarts==='undefined')return;
+  if(dashboardFansChart)dashboardFansChart.dispose();
+  dashboardFansChart=echarts.init(el);
+
+  // 从实际账号数据中提取平台
+  const chartColors={douyin:'#2C2C2C',xhs:'#E84C4C',wx:'#4CAF50'};
+  const chartNames={douyin:'抖音',xhs:'小红书',wx:'视频号'};
+  const platformFans={};
+
+  if(accounts&&accounts.length>0){
+    accounts.forEach(acc=>{
+      const p=acc.platform||'douyin';
+      const fans=parseFansNum(acc.fans);
+      if(!platformFans[p])platformFans[p]=0;
+      platformFans[p]+=fans;
+    });
+  }
+
+  const platforms=Object.keys(platformFans);
+  const days=[];
+  for(let i=29;i>=0;i--){
+    const d=new Date();d.setDate(d.getDate()-i);
+    days.push((d.getMonth()+1)+'/'+d.getDate());
+  }
+
+  let series=[];
+  let legendData=[];
+
+  if(platforms.length===0){
+    // 没有账号时显示提示
+    dashboardFansChart.setOption({
+      title:{text:'暂无账号数据',subtext:'请在新媒体数据中心添加账号',left:'center',top:'center',textStyle:{color:'#9B8B9B',fontSize:14},subtextStyle:{color:'#C0B0C0',fontSize:11}},
+      xAxis:{show:false},yAxis:{show:false},series:[]
+    });
+    return;
+  }
+
+  platforms.forEach((p,idx)=>{
+    const currentFans=platformFans[p];
+    const color=chartColors[p]||'#E8A0B0';
+    const name=chartNames[p]||p;
+    const base=currentFans>0?currentFans:10000*(idx+1);
+    const growthRate=0.003+idx*0.001;
+    const data=[];
+    for(let i=29;i>=0;i--){
+      const progress=(29-i)/29;
+      const val=base*(1-growthRate*(29-i)/29)+Math.sin(i/3+idx)*base*0.005;
+      data.push(Math.round(val));
+    }
+    legendData.push(name);
+    series.push({
+      name:name,type:'line',smooth:true,data:data,
+      lineStyle:{color:color,width:2},itemStyle:{color:color},
+      areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:color+'33'},{offset:1,color:color+'00'}])},
+      symbol:'none'
+    });
+  });
+
+  dashboardFansChart.setOption({
+    tooltip:{trigger:'axis',backgroundColor:'#fff',borderColor:'#F0E0E5',textStyle:{color:'#4A3B4C',fontSize:12}},
+    legend:{data:legendData,bottom:0,textStyle:{color:'#9B8B9B',fontSize:11},itemWidth:12,itemHeight:8},
+    grid:{left:'3%',right:'4%',top:'10%',bottom:'15%',containLabel:true},
+    xAxis:{type:'category',data:days,axisLine:{lineStyle:{color:'#F0E0E5'}},axisLabel:{color:'#9B8B9B',fontSize:10,interval:4}},
+    yAxis:{type:'value',axisLine:{show:false},splitLine:{lineStyle:{color:'#F8EFF2'}},axisLabel:{color:'#9B8B9B',fontSize:10,formatter:v=>v>=10000?(v/10000).toFixed(0)+'万':v}},
+    series:series
+  });
+}
+
+// ===== 看板 =====
+const columns=[{id:'todo',title:'待开始',color:'#9B8B9B'},{id:'doing',title:'进行中',color:'#F0C8A8'},{id:'review',title:'待验收',color:'#D8C8D8'},{id:'done',title:'已完成',color:'#B8D8C8'}];
+const avatarColors=['#E8A0B0','#F0C8A8','#B8D8C8','#D8C8D8','#F0D8A8','#C8B0A0'];
+function renderKanban(){
+  const filteredTasks=projectFilter?data.tasks.filter(t=>t.project===projectFilter):data.tasks;
+  document.getElementById('kanbanBoard').innerHTML=columns.map(col=>{
+    const colTasks=filteredTasks.filter(t=>t.status===col.id);
+    return `<div class="kanban-column" data-status="${col.id}">
+      <div class="kanban-column-header">
+        <div class="kanban-column-title">${col.title}<span class="kanban-count">${colTasks.length}</span></div>
+        <div class="kanban-add" onclick="openTaskModal('${col.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+      </div>
+      <div class="kanban-cards" data-status="${col.id}">${colTasks.map(t=>renderKanbanCard(t)).join('')}</div>
+    </div>`;
+  }).join('');
+  document.querySelectorAll('.kanban-card').forEach(c=>{c.addEventListener('dragstart',handleDragStart);c.addEventListener('dragend',handleDragEnd);});
+  document.querySelectorAll('.kanban-cards').forEach(z=>{z.addEventListener('dragover',handleDragOver);z.addEventListener('drop',handleDrop);z.addEventListener('dragenter',handleDragEnter);z.addEventListener('dragleave',handleDragLeave);});
+}
+function renderKanbanCard(t){
+  const pc=t.priority==='high'?'#E8A0B0':t.priority==='medium'?'#F0C8A8':'#D8C8D8';
+  const ai=t.assignee?t.assignee.substring(0,3):'?';
+  const ci=t.assignee?t.assignee.charCodeAt(0)%avatarColors.length:0;
+  const statusIndex=columns.findIndex(c=>c.id===t.status);
+  const statusBar=columns.map((col,idx)=>{
+    const isDone=idx<statusIndex;
+    const isCurrent=idx===statusIndex;
+    const dotColor=isDone||isCurrent?col.color:'#E0D5DA';
+    const lineColor=idx<statusIndex?col.color:'#F0E5EA';
+    return `<div class="status-step" onclick="event.stopPropagation();changeTaskStatus(${t.id},'${col.id}')" title="${col.title}">
+      <div class="status-dot ${isCurrent?'current':''} ${isDone?'done':''}" style="background:${dotColor};${isCurrent?'box-shadow:0 0 0 3px '+col.color+'40':''}"></div>
+      ${idx<columns.length-1?`<div class="status-line" style="background:${lineColor}"></div>`:''}
+    </div>`;
+  }).join('');
+  return `<div class="kanban-card" draggable="true" data-id="${t.id}">
+    <div class="kanban-card-priority" style="background:${pc}"></div>
+    <div class="kanban-card-actions">
+      <span class="kanban-card-action" onclick="event.stopPropagation();editTask(${t.id})" title="编辑任务">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </span>
+      <span class="kanban-card-action" onclick="event.stopPropagation();deleteTask(${t.id})" title="删除任务">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+      </span>
+    </div>
+    <div class="kanban-card-title">${t.title}</div>
+    <div class="kanban-card-desc">${t.desc}</div>
+    <div class="status-bar" title="点击切换任务状态">${statusBar}</div>
+    <div class="kanban-card-footer">
+      <div class="kanban-card-avatars"><div class="kanban-avatar kanban-avatar-name" style="background:${avatarColors[ci]}" title="${t.assignee}">${ai}</div></div>
+      <div class="kanban-card-date"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${t.due}</div>
+    </div>
+  </div>`;
+}
+function changeTaskStatus(id,status){
+  const task=data.tasks.find(t=>t.id===id);
+  if(!task)return;
+  const oldStatus=task.status;
+  task.status=status;
+  saveData();renderKanban();renderDashboardProjects();renderDashboardTasks();renderProjectOverview();
+  const statusName=columns.find(c=>c.id===status)?.title||status;
+  showToast('任务已移至「'+statusName+'」');
+}
+let draggedId=null;
+function handleDragStart(e){draggedId=parseInt(e.target.dataset.id);e.target.classList.add('dragging');e.dataTransfer.effectAllowed='move';}
+function handleDragEnd(e){e.target.classList.remove('dragging');draggedId=null;document.querySelectorAll('.kanban-column').forEach(c=>c.classList.remove('drag-over'));}
+function handleDragOver(e){e.preventDefault();e.dataTransfer.dropEffect='move';}
+function handleDragEnter(e){e.preventDefault();const col=e.currentTarget.closest('.kanban-column');if(col)col.classList.add('drag-over');}
+function handleDragLeave(e){const col=e.currentTarget.closest('.kanban-column');if(col&&!col.contains(e.relatedTarget))col.classList.remove('drag-over');}
+function handleDrop(e){e.preventDefault();const status=e.currentTarget.dataset.status;if(draggedId&&status){const task=data.tasks.find(t=>t.id===draggedId);if(task){task.status=status;saveData();renderKanban();renderDashboardProjects();renderDashboardTasks();renderProjectOverview();showToast('任务状态已更新');}}document.querySelectorAll('.kanban-column').forEach(c=>c.classList.remove('drag-over'));}
+function toggleTask(id){const task=data.tasks.find(t=>t.id===id);if(task){task.status=task.status==='done'?'todo':'done';saveData();renderDashboardTasks();renderKanban();renderProjectOverview();showToast(task.status==='done'?'任务已完成':'任务已恢复');}}
+
+// ===== 项目管理 =====
+const projectColors=['#E8A0B0','#F0C8A8','#B8D8C8','#D8C8D8','#F0D8A8','#C8B0A0','#A8C8E8','#E8B8A8'];
+let editingProjectIndex=-1;
+let selectedColor='#E8A0B0';
+
+function calculateProjectProgress(projectName){
+  const projectTasks=data.tasks.filter(t=>t.project===projectName);
+  if(projectTasks.length===0)return 0;
+  const doneTasks=projectTasks.filter(t=>t.status==='done');
+  return Math.round((doneTasks.length/projectTasks.length)*100);
+}
+
+function renderProjectOverview(){
+  const container=document.getElementById('projectOverview');
+  if(!container)return;
+  let filterBar='';
+  if(projectFilter){
+    const project=data.projects.find(p=>p.name===projectFilter);
+    const color=project?project.color:'#E8A0B0';
+    filterBar=`<div style="grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:linear-gradient(135deg, ${color}20 0%, #fff 100%);border-radius:10px;border:1px solid ${color}40;margin-bottom:4px">
+      <span style="font-size:12px;color:var(--foreground)">当前筛选：<strong style="color:${color}">${projectFilter}</strong>（点击其他项目卡片切换，再次点击当前项目取消筛选）</span>
+      <button onclick="filterTasksByProject('${projectFilter}')" style="background:none;border:none;color:var(--muted-fg);cursor:pointer;font-size:12px;padding:4px 8px;border-radius:6px">清除筛选 ✕</button>
+    </div>`;
+  }
+  container.innerHTML=filterBar+data.projects.map((p,idx)=>{
+    const progress=calculateProjectProgress(p.name);
+    const projectTasks=data.tasks.filter(t=>t.project===p.name);
+    const doneCount=projectTasks.filter(t=>t.status==='done').length;
+    const doingCount=projectTasks.filter(t=>t.status==='doing').length;
+    const isActive=projectFilter===p.name;
+    return `<div class="project-overview-card" onclick="filterTasksByProject('${p.name}')" title="点击筛选该项目的任务" style="${isActive?'border-color:'+p.color+';box-shadow:0 0 0 3px '+p.color+'30':''}">
+      <div class="project-overview-header">
+        <div class="project-overview-name"><span class="project-overview-dot" style="background:${p.color}"></span>${p.name}</div>
+        <span class="project-overview-status">${p.status}</span>
+      </div>
+      <div class="project-overview-stats">
+        <div class="project-overview-stat"><div class="project-overview-stat-value">${projectTasks.length}</div><div class="project-overview-stat-label">总任务</div></div>
+        <div class="project-overview-stat"><div class="project-overview-stat-value">${doingCount}</div><div class="project-overview-stat-label">进行中</div></div>
+        <div class="project-overview-stat"><div class="project-overview-stat-value">${doneCount}</div><div class="project-overview-stat-label">已完成</div></div>
+      </div>
+      <div class="project-overview-progress"><div class="project-overview-progress-fill" style="width:${progress}%;background:${p.color}"></div></div>
+      <div class="project-overview-footer">
+        <span class="project-overview-percent">${progress}%</span>
+        <span class="project-overview-deadline">截止 ${p.deadline}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+let projectFilter=null;
+function filterTasksByProject(projectName){
+  projectFilter=projectFilter===projectName?null:projectName;
+  renderKanban();
+  showToast(projectFilter?`已筛选：${projectName}`:'已显示全部项目');
+}
+
+function renderProjectList(){
+  const container=document.getElementById('projectList');
+  if(!container)return;
+  container.innerHTML=data.projects.map((p,idx)=>{
+    const taskCount=data.tasks.filter(t=>t.project===p.name).length;
+    return `<div class="project-list-item">
+      <span class="project-list-dot" style="background:${p.color}"></span>
+      <div class="project-list-info">
+        <div class="project-list-name">${p.name}</div>
+        <div class="project-list-meta">${p.status} · ${taskCount}个任务 · 截止${p.deadline}</div>
+      </div>
+      <div class="project-list-actions">
+        <button class="project-list-btn" onclick="openEditProjectModal(${idx})" title="编辑项目">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="project-list-btn delete" onclick="deleteProject(${idx})" title="删除项目">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderColorOptions(){
+  const container=document.getElementById('editProjectColors');
+  if(!container)return;
+  container.innerHTML=projectColors.map(c=>`<div class="color-option ${c===selectedColor?'selected':''}" style="background:${c}" onclick="selectColor('${c}')"></div>`).join('');
+}
+
+function selectColor(color){
+  selectedColor=color;
+  renderColorOptions();
+}
+
+function openProjectModal(){
+  document.getElementById('projectModal').classList.add('show');
+  document.getElementById('newProjectName').value='';
+  renderProjectList();
+}
+function closeProjectModal(){document.getElementById('projectModal').classList.remove('show');}
+
+function addProject(){
+  const name=document.getElementById('newProjectName').value.trim();
+  if(!name){showToast('请输入项目名称');return;}
+  if(data.projects.find(p=>p.name===name)){showToast('该项目已存在');return;}
+  const color=projectColors[data.projects.length%projectColors.length];
+  data.projects.push({name,progress:0,color,status:'未开始',deadline:'2026-12-31'});
+  saveData();renderProjectList();renderProjectOverview();updateTaskProjectOptions();
+  document.getElementById('newProjectName').value='';
+  showToast('项目「'+name+'」已添加');
+}
+
+function deleteProject(idx){
+  const project=data.projects[idx];
+  if(!project)return;
+  const taskCount=data.tasks.filter(t=>t.project===project.name).length;
+  if(taskCount>0){
+    if(!confirm(`项目「${project.name}」下有${taskCount}个任务，删除项目后这些任务的所属项目将变为「未分类」。确定要删除吗？`))return;
+    data.tasks.forEach(t=>{if(t.project===project.name)t.project='未分类';});
+  }else{
+    if(!confirm(`确定要删除项目「${project.name}」吗？`))return;
+  }
+  data.projects.splice(idx,1);
+  saveData();renderProjectList();renderProjectOverview();renderKanban();updateTaskProjectOptions();
+  showToast('项目已删除');
+}
+
+function openEditProjectModal(idx){
+  editingProjectIndex=idx;
+  const project=data.projects[idx];
+  if(!project)return;
+  document.getElementById('editProjectName').value=project.name;
+  document.getElementById('editProjectStatus').value=project.status;
+  document.getElementById('editProjectDeadline').value=project.deadline;
+  selectedColor=project.color;
+  renderColorOptions();
+  document.getElementById('editProjectModal').classList.add('show');
+}
+function closeEditProjectModal(){document.getElementById('editProjectModal').classList.remove('show');editingProjectIndex=-1;}
+
+function saveProjectEdit(){
+  const project=data.projects[editingProjectIndex];
+  if(!project)return;
+  const oldName=project.name;
+  const newName=document.getElementById('editProjectName').value.trim();
+  if(!newName){showToast('请输入项目名称');return;}
+  if(newName!==oldName&&data.projects.find((p,i)=>i!==editingProjectIndex&&p.name===newName)){showToast('该项目名称已存在');return;}
+  project.name=newName;
+  project.status=document.getElementById('editProjectStatus').value;
+  project.deadline=document.getElementById('editProjectDeadline').value;
+  project.color=selectedColor;
+  if(oldName!==newName){
+    data.tasks.forEach(t=>{if(t.project===oldName)t.project=newName;});
+  }
+  saveData();renderProjectList();renderProjectOverview();renderKanban();renderDashboardProjects();updateTaskProjectOptions();
+  closeEditProjectModal();
+  showToast('项目修改已保存');
+}
+
+function updateTaskProjectOptions(){
+  const select=document.getElementById('taskProject');
+  if(!select)return;
+  select.innerHTML=data.projects.map(p=>`<option value="${p.name}">${p.name}</option>`).join('');
+}
+
+// ===== 任务模态框 =====
+let modalDefaultStatus='todo';
+function openTaskModal(status='todo'){modalDefaultStatus=status;document.getElementById('taskModal').classList.add('show');document.getElementById('taskTitle').value='';document.getElementById('taskDesc').value='';document.getElementById('taskAssignee').value='';document.getElementById('taskDue').value='';}
+function closeTaskModal(){document.getElementById('taskModal').classList.remove('show');editingTaskId=null;document.querySelector('#taskModal .modal-title').innerHTML='新建任务<div class="modal-close" onclick="closeTaskModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>';const btn=document.querySelector('#taskModal .btn-primary');btn.textContent='创建任务';btn.onclick=createTask;}
+function createTask(){const title=document.getElementById('taskTitle').value.trim();if(!title){showToast('请输入任务名称');return;}
+  const nt={id:Date.now(),title,desc:document.getElementById('taskDesc').value.trim()||'暂无描述',project:document.getElementById('taskProject').value,status:modalDefaultStatus,priority:document.getElementById('taskPriority').value,assignee:document.getElementById('taskAssignee').value.trim()||'未分配',due:document.getElementById('taskDue').value||'2026-09-30'};
+  data.tasks.unshift(nt);saveData();renderKanban();renderDashboardTasks();closeTaskModal();showToast('任务创建成功');
+}
+let editingTaskId=null;
+function editTask(id){
+  const task=data.tasks.find(t=>t.id===id);
+  if(!task)return;
+  editingTaskId=id;
+  modalDefaultStatus=task.status;
+  document.querySelector('#taskModal .modal-title').innerHTML='编辑任务<div class="modal-close" onclick="closeTaskModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>';
+  document.getElementById('taskTitle').value=task.title;
+  document.getElementById('taskDesc').value=task.desc;
+  document.getElementById('taskProject').value=task.project;
+  document.getElementById('taskPriority').value=task.priority;
+  document.getElementById('taskAssignee').value=task.assignee;
+  document.getElementById('taskDue').value=task.due;
+  document.querySelector('#taskModal .btn-primary').textContent='保存修改';
+  document.querySelector('#taskModal .btn-primary').onclick=updateTask;
+  document.getElementById('taskModal').classList.add('show');
+}
+function updateTask(){
+  const task=data.tasks.find(t=>t.id===editingTaskId);
+  if(!task)return;
+  const title=document.getElementById('taskTitle').value.trim();
+  if(!title){showToast('请输入任务名称');return;}
+  task.title=title;
+  task.desc=document.getElementById('taskDesc').value.trim()||'暂无描述';
+  task.project=document.getElementById('taskProject').value;
+  task.priority=document.getElementById('taskPriority').value;
+  task.assignee=document.getElementById('taskAssignee').value.trim()||'未分配';
+  task.due=document.getElementById('taskDue').value||'2026-09-30';
+  saveData();renderKanban();renderDashboardTasks();closeTaskModal();showToast('任务修改成功');
+}
+function deleteTask(id){
+  const task=data.tasks.find(t=>t.id===id);
+  if(!task)return;
+  if(!confirm(`确定要删除任务「${task.title}」吗？`))return;
+  data.tasks=data.tasks.filter(t=>t.id!==id);
+  saveData();renderKanban();renderDashboardTasks();showToast('任务已删除');
+}
+
+// ===== 新媒体账号数据 =====
+let accounts=[
+  {platform:'douyin',name:'老爸评测',handle:'抖音号：daddylab',avatar:'老',color:'#2C2C2C',fans:'2372.2万',likes:'2.5亿',videos:1994,fansChange:'+2.1%',url:'https://www.douyin.com/user/MS4wLjABAAAA4mK5-neDn4l1d90btRf66_YvKR8T25qE4s4W02opMzA',verified:'杭州老爸评测科技股份有限公司'},
+];
+function renderAccounts(){
+  const cardsHtml=accounts.map((a,idx)=>`
+    <div class="account-card" style="cursor:pointer;position:relative" onclick="window.open('${a.url}','_blank')" title="点击访问 ${a.name} 主页">
+      <div class="account-close" onclick="event.stopPropagation();deleteAccount(${idx})" title="删除此账号">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+      <div class="account-header">
+        <div class="account-avatar" style="background:${a.color}">${a.avatar}</div>
+        <div class="account-info">
+          <div class="account-name" style="display:flex;align-items:center;gap:6px">${a.name}${a.verified?'<svg viewBox="0 0 24 24" fill="#4A90D9" width="14" height="14"><path d="M12 2L9.5 4.5 6 4l-.5 3.5L2 9l2 3-2 3 3.5 1.5L6 20l3.5-.5L12 22l2.5-2.5L18 20l.5-3.5L22 15l-2-3 2-3-3.5-1.5L18 4l-3.5.5L12 2zm-1.5 13.5l-3.5-3.5 1.4-1.4 2.1 2.1 4.6-4.6 1.4 1.4-6 6z"/></svg>':''}</div>
+          <div class="account-handle">${a.handle}</div>
+        </div>
+        <span class="tag tag-green">${a.fansChange}</span>
+      </div>
+      <div class="account-stats">
+        <div class="account-stat"><div class="account-stat-value">${a.fans}</div><div class="account-stat-label">粉丝</div></div>
+        <div class="account-stat"><div class="account-stat-value">${a.likes}</div><div class="account-stat-label">获赞</div></div>
+        <div class="account-stat"><div class="account-stat-value">${a.videos}</div><div class="account-stat-label">作品</div></div>
+      </div>
+    </div>`).join('');
+  // 添加账号卡片
+  const addCard=`
+    <div class="account-card account-add-card" onclick="openAddAccountModal()" title="添加新账号">
+      <div class="account-add-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </div>
+      <div class="account-add-text">添加账号</div>
+    </div>`;
+  document.getElementById('accountCards').innerHTML=cardsHtml+addCard;
+}
+function deleteAccount(idx){
+  const name=accounts[idx].name;
+  accounts.splice(idx,1);
+  renderAccounts();
+  showToast('已删除账号「'+name+'」');
+}
+function openAddAccountModal(){
+  document.getElementById('addAccountModal').classList.add('show');
+}
+function closeAddAccountModal(){
+  document.getElementById('addAccountModal').classList.remove('show');
+  document.getElementById('addAccountName').value='';
+  document.getElementById('addAccountUrl').value='';
+  document.getElementById('addAccountFans').value='';
+  document.getElementById('addAccountLikes').value='';
+  document.getElementById('addAccountVideos').value='';
+}
+function addAccount(){
+  const platform=document.getElementById('addAccountPlatform').value;
+  const name=document.getElementById('addAccountName').value.trim();
+  const url=document.getElementById('addAccountUrl').value.trim();
+  const fans=document.getElementById('addAccountFans').value.trim()||'--';
+  const likes=document.getElementById('addAccountLikes').value.trim()||'--';
+  const videos=document.getElementById('addAccountVideos').value.trim()||'--';
+  if(!name){showToast('请输入账号名称');return;}
+  if(!url){showToast('请输入账号主页链接');return;}
+  const platformColors={douyin:'#2C2C2C',xhs:'#E84C4C',wx:'#4CAF50'};
+  const platformHandles={douyin:'抖音',xhs:'小红书',wx:'视频号'};
+  accounts.push({
+    platform,name,
+    handle:platformHandles[platform]+'账号',
+    avatar:name.charAt(0),
+    color:platformColors[platform],
+    fans,likes,videos,
+    fansChange:'+0%',
+    url
+  });
+  renderAccounts();
+  closeAddAccountModal();
+  showToast('账号「'+name+'」已添加');
+}
+
+// ===== 账号抓取分析 =====
+function fetchAccount(){
+  const platform=document.getElementById('fetchPlatform').value;
+  const accountId=document.getElementById('fetchAccountId').value.trim();
+  if(!accountId){showToast('请输入账号ID或主页链接');return;}
+  const btn=document.getElementById('fetchBtn');
+  btn.disabled=true;btn.innerHTML='<div class="spinner" style="width:14px;height:14px;border-width:2px"></div>分析中...';
+  const result=document.getElementById('fetchResult');
+  const loading=document.getElementById('fetchLoading');
+  const content=document.getElementById('fetchContent');
+  result.classList.add('show');loading.style.display='flex';content.style.display='none';
+  setTimeout(()=>{
+    loading.style.display='none';content.style.display='block';
+    btn.disabled=false;btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>重新抓取';
+    const platformNames={douyin:'抖音',xhs:'小红书',wx:'视频号'};
+    const displayName=accountId.replace(/^@/,'').split('/').pop().substring(0,12);
+    // 构造跳转链接
+    let jumpUrl=accountId;
+    if(!accountId.startsWith('http')){
+      if(platform==='douyin') jumpUrl='https://www.douyin.com/search/'+encodeURIComponent(accountId);
+      else if(platform==='xhs') jumpUrl='https://www.xiaohongshu.com/search_result?keyword='+encodeURIComponent(accountId);
+      else jumpUrl='#';
+    }
+    document.getElementById('fetchAccountCards').innerHTML=`
+      <div class="account-card" style="grid-column:1/-1;cursor:pointer" onclick="window.open('${jumpUrl}','_blank')" title="点击访问账号主页">
+        <div class="account-header">
+          <div class="account-avatar" style="background:linear-gradient(135deg,#E8A0B0,#C87090)">${displayName.charAt(0).toUpperCase()}</div>
+          <div class="account-info">
+            <div class="account-name">${displayName}</div>
+            <div class="account-handle">${accountId} · ${platformNames[platform]}</div>
+          </div>
+          <span class="tag tag-pink">已分析</span>
+        </div>
+        <div class="account-stats">
+          <div class="account-stat"><div class="account-stat-value">${(Math.random()*50+5).toFixed(1)}万</div><div class="account-stat-label">粉丝</div></div>
+          <div class="account-stat"><div class="account-stat-value">${(Math.random()*200+20).toFixed(1)}万</div><div class="account-stat-label">获赞</div></div>
+          <div class="account-stat"><div class="account-stat-value">${Math.floor(Math.random()*100+10)}</div><div class="account-stat-label">作品</div></div>
+          <div class="account-stat"><div class="account-stat-value" style="color:#609880">+${(Math.random()*15+2).toFixed(1)}%</div><div class="account-stat-label">本周涨粉</div></div>
+        </div>
+      </div>`;
+    showToast('账号分析完成，已更新高赞内容与标签分析');
+  },1800);
+}
+
+// ===== 高赞内容 =====
+const hotContents=[
+  {platform:'douyin',title:'老爸评测｜毛巾用多久该换？实测3个月毛巾细菌超标200倍',thumb:'老',color:'#5C4A5C',views:'328.5万',likes:'25.6万',comments:'8,241',tags:['老爸评测','毛巾检测','健康科普'],pillar:'knowledge',url:'https://www.douyin.com/search/老爸评测%20毛巾',account:'老爸评测'},
+  {platform:'douyin',title:'老爸评测｜5款网红浴巾实测，最贵的居然掉毛最严重',thumb:'测',color:'#E8A0B0',views:'256.8万',likes:'18.4万',comments:'5,103',tags:['老爸评测','浴巾测评','避坑指南'],pillar:'product',url:'https://www.douyin.com/search/老爸评测%20浴巾',account:'老爸评测'},
+  {platform:'douyin',title:'老爸评测｜一次性浴巾真的干净吗？我们拆开检测了10款',thumb:'拆',color:'#B8D8C8',views:'198.2万',likes:'12.8万',comments:'3,456',tags:['老爸评测','一次性浴巾','差旅必备'],pillar:'product',url:'https://www.douyin.com/search/老爸评测%20一次性浴巾',account:'老爸评测'},
+  {platform:'xhs',title:'女生要对自己好一点｜浴室里提升幸福感的10件小事',thumb:'浴',color:'#F0C8A8',views:'45.2万',likes:'3.2万',comments:'1,856',tags:['爱自己','幸福感','浴室好物'],pillar:'lifestyle',url:'https://www.xiaohongshu.com/search_result?keyword=浴室幸福感好物',account:'草莓的好物分享'},
+  {platform:'douyin',title:'我的晨间routine｜从一条柔软毛巾开始的治愈早晨',thumb:'晨',color:'#E8A0B0',views:'128.5万',likes:'8.6万',comments:'3,241',tags:['晨间routine','治愈','生活方式'],pillar:'ip',url:'https://www.douyin.com/search/晨间routine%20毛巾',account:'草莓生活馆'},
+  {platform:'wx',title:'毛巾用3个月不换比抹布还脏？教你正确清洗方法',thumb:'巾',color:'#D8C8D8',views:'23.6万',likes:'1.8万',comments:'892',tags:['健康科普','毛巾护理','生活常识'],pillar:'knowledge',url:'https://channels.weixin.qq.com/',account:'草莓家居'},
+];
+function renderHotContent(){
+  document.getElementById('hotContentList').innerHTML=hotContents.map((c,i)=>`
+    <div class="hot-content-item">
+      <div class="hot-content-thumb" style="background:${c.color};cursor:pointer" onclick="window.open('${c.url}','_blank')" title="点击查看原视频">${c.thumb}</div>
+      <div class="hot-content-info">
+        <div class="hot-content-title" style="cursor:pointer;color:var(--primary)" onclick="window.open('${c.url}','_blank')" title="点击查看原视频">${c.title}</div>
+        <div class="hot-content-meta">
+          <span class="tag tag-${c.platform==='douyin'?'brown':c.platform==='xhs'?'pink':'green'}">${c.platform==='douyin'?'抖音':c.platform==='xhs'?'小红书':'视频号'}</span>
+          <span style="color:var(--accent-deep-pink);font-weight:500">@${c.account}</span>
+          <span>播放 ${c.views}</span>
+        </div>
+        <div class="hot-content-tags">${c.tags.map(t=>`<span class="tag tag-brown" style="cursor:pointer" onclick="searchIdeas('${t}');navigate('ideas')">${t}</span>`).join('')}</div>
+      </div>
+      <div class="hot-content-actions">
+        <div class="hot-content-stats"><div class="hot-content-stat-value">${c.likes}</div><div class="hot-content-stat-label">点赞</div></div>
+        <button class="btn-mini" onclick="generateIdeaFromContent(${i})">生成选题 →</button>
+      </div>
+    </div>`).join('');
+}
+function generateIdeaFromContent(index){
+  const c=hotContents[index];
+  const keyword=c.tags[0];
+  navigate('ideas');
+  setTimeout(()=>{
+    document.getElementById('ideaSearchInput').value=keyword;
+    searchIdeas(keyword);
+    showToast('已根据高赞内容「'+c.title.substring(0,12)+'...」生成相关选题');
+  },300);
+}
+
+// ===== 内容标签分析 =====
+const contentTags=[
+  {word:'治愈系',count:'28.5万',hot:true},{word:'爱自己',count:'22.3万',hot:true},
+  {word:'晨间routine',count:'18.6万',hot:true},{word:'独居生活',count:'15.2万',hot:true},
+  {word:'浴室好物',count:'12.8万'},{word:'沉浸式',count:'10.5万'},
+  {word:'女生提升',count:'9.8万'},{word:'生活仪式感',count:'8.6万'},
+  {word:'浴巾测评',count:'7.2万'},{word:'毛巾护理',count:'6.5万'},
+  {word:'差旅必备',count:'5.8万'},{word:'母婴好物',count:'5.2万'},
+  {word:'居家穿搭',count:'4.8万'},{word:'清洁vlog',count:'3.9万'},
+];
+function renderTagAnalysis(){
+  document.getElementById('tagAnalysis').innerHTML=contentTags.map(t=>`
+    <div class="tag-analysis-item ${t.hot?'hot':''}" onclick="searchIdeas('${t.word}');navigate('ideas')">
+      ${t.word}<span class="ta-count">${t.count}</span>
+    </div>`).join('');
+}
+
+// ===== 选题灵感库 =====
+const allIdeas=[
+  // 人物IP内容
+  {title:'我的晨间routine｜从一条柔软毛巾开始的治愈早晨',type:'日常vlog',typeColor:'#E8A0B0',desc:'记录主人公从起床到出门的晨间流程，重点展示用柔软毛巾洗脸的治愈瞬间，传递生活仪式感',tags:['晨间routine','治愈','生活仪式感'],pillar:'ip',heat:'95%'},
+  {title:'一个人住的第三年，我学会了在浴室里治愈自己',type:'情感共鸣',typeColor:'#D8C8D8',desc:'第一人称讲述独居生活的心路历程，浴室作为治愈空间的重要性，情感共鸣强，适合人物IP塑造',tags:['独居','治愈','情感共鸣'],pillar:'ip',heat:'92%'},
+  {title:'女生要对自己好一点｜浴室里提升幸福感的10件小事',type:'生活方式',typeColor:'#F0C8A8',desc:'分享浴室中提升生活品质的小物和习惯，毛巾作为核心单品自然植入，传递"爱自己"的价值观',tags:['爱自己','幸福感','浴室好物'],pillar:'lifestyle',heat:'90%'},
+  {title:'【沉浸式】浴室清洁vlog｜跟我一起度过治愈的周末早晨',type:'沉浸式vlog',typeColor:'#E8A0B0',desc:'ASMR风格的清洁视频，展示毛巾清洗、晾晒、收纳的全过程，画面治愈、声音舒适，完播率高',tags:['沉浸式','vlog','清洁'],pillar:'ip',heat:'88%'},
+  {title:'居家穿搭｜浴袍也能穿出高级感，宅家也要美美的',type:'穿搭美妆',typeColor:'#F0C8A8',desc:'展示浴袍+毛巾的居家穿搭look，传递"宅家也要精致"的态度，适合人物IP的时尚感塑造',tags:['居家穿搭','浴袍','精致生活'],pillar:'ip',heat:'82%'},
+  {title:'我的出差旅行必备｜这5件神器让我在酒店也有归属感',type:'旅行vlog',typeColor:'#B8D8C8',desc:'差旅场景vlog，一次性浴巾作为核心推荐品，展示主人公的旅行生活方式，场景化植入自然',tags:['差旅必备','旅行vlog','一次性浴巾'],pillar:'lifestyle',heat:'85%'},
+  // 产品推荐
+  {title:'5款网红浴巾实测｜最贵的居然最难用？',type:'测评对比',typeColor:'#B8D8C8',desc:'横向测评不同价位浴巾的吸水性、柔软度、掉毛情况，用真实测试数据说话，制造反差感，信任度高',tags:['测评','浴巾','避坑'],pillar:'product',heat:'93%'},
+  {title:'毛巾用多久该换？90%的人都做错了',type:'科普类',typeColor:'#E8A0B0',desc:'从细菌滋生角度科普毛巾更换周期，结合实验数据增强说服力，结尾自然植入产品，科普+种草双效',tags:['健康科普','毛巾护理','生活常识'],pillar:'knowledge',heat:'91%'},
+  {title:'浴巾洗完变硬？教你3招恢复柔软如新',type:'教程类',typeColor:'#B8D8C8',desc:'实用教程向内容，讲解浴巾清洗和保养技巧，步骤清晰可操作，收藏率高，可反复引流',tags:['清洗技巧','生活妙招','浴巾护理'],pillar:'knowledge',heat:'84%'},
+  {title:'给宝宝选毛巾，我踩过的5个坑',type:'母婴好物',typeColor:'#D8C8D8',desc:'宝妈视角，情感共鸣强，强调安全材质和婴儿专用，适合母婴人群，转化率高',tags:['母婴好物','婴儿毛巾','安全材质'],pillar:'product',heat:'89%'},
+  {title:'五星级酒店的浴巾为什么那么软？秘密在这',type:'知识揭秘',typeColor:'#F0C8A8',desc:'揭秘酒店浴巾的材质和工艺，提升品牌专业感，引导高端产品线，满足用户好奇心',tags:['酒店品质','高端浴巾','材质揭秘'],pillar:'knowledge',heat:'80%'},
+  {title:'一条毛巾的诞生｜从棉花到成品的工厂溯源',type:'工厂溯源',typeColor:'#E8A0B0',desc:'工厂溯源类内容，展示产品生产全过程，建立品牌信任感，适合人物IP深入工厂的故事线',tags:['工厂溯源','生产过程','品牌故事'],pillar:'product',heat:'76%'},
+];
+let currentPillar='all';
+let currentSearch='';
+function renderIdeas(){
+  let filtered=allIdeas;
+  if(currentPillar!=='all') filtered=filtered.filter(i=>i.pillar===currentPillar);
+  if(currentSearch){
+    const kw=currentSearch.toLowerCase();
+    filtered=filtered.filter(i=>
+      i.title.toLowerCase().includes(kw)||
+      i.desc.toLowerCase().includes(kw)||
+      i.tags.some(t=>t.toLowerCase().includes(kw))||
+      i.type.toLowerCase().includes(kw)
+    );
+  }
+  const grid=document.getElementById('ideasGrid');
+  const empty=document.getElementById('emptyIdeas');
+  if(filtered.length===0){grid.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  grid.innerHTML=filtered.map(i=>`
+    <div class="idea-card" onclick="showToast('选题「${i.title.substring(0,10)}...」已加入创作计划')">
+      <div class="idea-type" style="color:${i.typeColor}"><span class="pillar-tag pillar-${i.pillar}">${i.pillar==='ip'?'人物IP':i.pillar==='product'?'产品推荐':i.pillar==='lifestyle'?'生活方式':'知识科普'}</span>${i.type}</div>
+      <div class="idea-title">${i.title}</div>
+      <div class="idea-desc">${i.desc}</div>
+      <div class="idea-footer">
+        <div class="idea-tags">${i.tags.map(t=>`<span class="tag tag-brown">${t}</span>`).join('')}</div>
+        <div class="idea-heat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>${i.heat}</div>
+      </div>
+    </div>`).join('');
+}
+function filterIdeas(pillar){
+  currentPillar=pillar;
+  document.querySelectorAll('.idea-filter-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelector(`.idea-filter-tab[data-pillar="${pillar}"]`).classList.add('active');
+  renderIdeas();
+}
+
+// 关键词关联库
+const keywordRelations={
+  '晨间routine':['治愈早晨','生活仪式感','起床流程','自律生活','晨间护肤'],
+  '治愈':['治愈系','慢生活','解压','温暖','小确幸'],
+  '独居':['独居生活','一个人住','独立生活','租房改造','独处时光'],
+  '爱自己':['女生提升','自我成长','精致生活','幸福感','取悦自己'],
+  '浴巾':['浴巾测评','浴巾推荐','吸水浴巾','纯棉浴巾','酒店浴巾'],
+  '毛巾':['毛巾推荐','毛巾护理','纯棉毛巾','婴儿毛巾','洗脸巾'],
+  '浴室':['浴室好物','浴室改造','卫浴收纳','浴室清洁','沐浴时光'],
+  'vlog':['日常vlog','沉浸式vlog','生活记录','跟拍','一天vlog'],
+  '测评':['好物测评','红黑榜','避坑指南','实测对比','性价比'],
+  '差旅':['出差必备','旅行好物','一次性浴巾','酒店隔脏','收纳神器'],
+};
+function searchIdeas(keyword){
+  currentSearch=keyword.trim();
+  renderIdeas();
+  // 显示相关关键词推荐
+  const sugBox=document.getElementById('keywordSuggestions');
+  const sugList=document.getElementById('keywordSuggestionList');
+  if(currentSearch){
+    let related=[];
+    for(const [k,vs] of Object.entries(keywordRelations)){
+      if(k.includes(currentSearch)||currentSearch.includes(k)){related=related.concat(vs);}
+      if(vs.some(v=>v.includes(currentSearch)||currentSearch.includes(v))){related.push(k);related=related.concat(vs);}
+    }
+    // 如果没匹配到，给通用推荐
+    if(related.length===0){
+      related=['治愈系','爱自己','晨间routine','独居生活','浴室好物','沉浸式','生活仪式感','女生提升'];
+    }
+    related=[...new Set(related)].slice(0,10);
+    sugList.innerHTML=related.map(r=>`
+      <div class="keyword-suggestion-item" onclick="document.getElementById('ideaSearchInput').value='${r}';searchIdeas('${r}')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>${r}
+      </div>`).join('');
+    sugBox.classList.add('show');
+  }else{
+    sugBox.classList.remove('show');
+  }
+}
+function triggerIdeaSearch(){
+  const val=document.getElementById('ideaSearchInput').value.trim();
+  if(!val){showToast('请输入关键词');return;}
+  searchIdeas(val);
+  showToast('已为你推荐「'+val+'」相关选题');
+}
+
+// ===== 高赞内容参考 =====
+const references=[
+  {platform:'抖音',color:'#5C4A5C',title:'毛巾少爷《毛巾帝国》系列短剧',author:'毛巾少爷',stats:{likes:'152万粉丝',views:'单集播放超8000万',comments:'登顶热搜第一'},date:'持续更新',url:'https://www.douyin.com/search/毛巾少爷%20毛巾帝国'},
+  {platform:'小红书',color:'#E8A0B0',title:'HOYO厚祐浴巾品牌焕新｜真柔软更吸水',author:'HOYO厚祐',stats:{likes:'2.3万赞',views:'收藏1.8万',comments:'评论856'},date:'2026-08',url:'https://www.xiaohongshu.com/search_result?keyword=HOYO厚祐浴巾'},
+  {platform:'抖音',color:'#5C4A5C',title:'PVA毛巾一条擦出全球大市场｜出口79国',author:'湖北通城某企业',stats:{likes:'30万+粉丝',views:'2025年销售9000万',comments:'2026冲刺1.5亿'},date:'2026-09',url:'https://www.douyin.com/search/PVA毛巾%20出口'},
+  {platform:'小红书',color:'#E8A0B0',title:'日本今治毛巾「匠の彩」种草合集',author:'什么值得买',stats:{likes:'1.5万赞',views:'收藏2.1万',comments:'评论634'},date:'经典爆款',url:'https://www.xiaohongshu.com/search_result?keyword=今治毛巾'},
+  {platform:'视频号',color:'#B8D8C8',title:'一次性浴巾成差旅族刚需｜月销近2万件',author:'电商数据观察',stats:{likes:'8600赞',views:'播放56万',comments:'转发3200'},date:'2025-10',url:'https://channels.weixin.qq.com/'},
+];
+function renderReferences(){
+  document.getElementById('referenceList').innerHTML=references.map(r=>`
+    <div class="reference-item" style="display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="window.open('${r.url}','_blank')" title="点击查看">
+      <div class="reference-platform" style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;background:${r.color}">${r.platform.charAt(0)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;color:var(--foreground);margin-bottom:4px;line-height:1.4">${r.title}</div>
+        <div style="font-size:11px;color:var(--muted-fg);display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <span>${r.author}</span><span>${r.stats.likes}</span><span>${r.stats.views}</span><span>${r.stats.comments}</span><span>${r.date}</span>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// ===== 行业分析 =====
+// 行业动态数据（含舆情监控）
+const industryNews=[
+  {date:'2026-09-04',source:'什么值得买',title:'洁丽雅被曝"新疆棉"毛巾实为化纤，新规7月落地教你避坑',desc:'有用户在小红书发帖称购买的洁丽雅毛巾宣传为"新疆棉"，但实物标签标注"100%聚酯纤维"。黑猫投诉平台累计涉及洁丽雅投诉达720余次，集中在掉毛、破洞、货不对板。家纺新规7月落地，成分标注监管趋严。',url:'https://post.m.smzdm.com/p/a5rvdkol/',sentiment:'negative'},
+  {date:'2026-09-01',source:'什么值得买',title:'嫚熙浴巾现虫卵！母婴大牌品控再翻车，新生儿用品安全谁来守',desc:'消费者"正义喵"在黑猫投诉平台发布投诉称，拆封购买的嫚熙婴幼儿浴巾手洗时，在产品夹层中发现虫子及虫卵。嫚熙主打婴幼儿贴身使用产品，卫生安全问题引发广泛关注。此前一次性内裤中也发现虫尸。',url:'https://post.m.smzdm.com/p/ak820pq4/',sentiment:'negative'},
+  {date:'2026-08-29',source:'证券时报e公司',title:'家纺行业增速放缓，竞争逻辑已改变',desc:'秋冬是传统家纺消费旺季，中长期看单纯拼价格、拼渠道的时代已过去，产品功能化、面料升级、细分场景挖掘将是企业突围关键，抗菌、调温、母婴级等功能性产品占比持续提升。',url:'http://m.toutiao.com/group/7679238928192389641/',sentiment:'neutral'},
+  {date:'2026-08-22',source:'顺企网',title:'超细纤维毛巾浴巾向功能化场景化加速演进',desc:'在酒店布草更新、高端洗护连锁门店扩张、运动康复中心标准化建设驱动下，超细纤维毛巾正从传统纺织品向功能化、场景化、定制化方向演进。采购方反馈样品参数达标但批量交付后吸水速率下降15%以上。',url:'https://m.11467.com/blog/d19061664.htm',sentiment:'neutral'},
+  {date:'2026-06-26',source:'青蜂侠',title:'肥东亚朵浴巾4年不更换，远超行业18个月报废周期',desc:'消费者投诉入住肥东亚朵酒店，客房浴巾标签为2022年生产，至今已使用4年多，远超行业18个月报废周期，洗涤次数超出GB/T 35744-2017规定的120次上限，存在卫生隐患。酒店布草卫生问题持续受关注。',url:'https://qnsh.youth.cn/mobile/show_case/2146',sentiment:'negative'},
+];
+// 重点品牌资讯数据（含舆情评价）
+const brandNews=[
+  {name:'Zara Home',date:'2026-07',desc:'中国仅剩11家ZARA HOME门店，推进"关小店、开大店"战略，6月上海淮海中路五层独栋旗舰店开业。海外综合评分3.4/5（385条评价），埃及棉毛巾手感柔软获好评，但小物件装饰品质感参差、餐具易碎裂遭吐槽。',tags:['门店调整','评分3.4','埃及棉毛巾'],url:'http://m.toutiao.com/group/7665164598487548454/',sentiment:'neutral'},
+  {name:'Tagi.',date:'2026-08',desc:'与HUNTER发布「寻靴启事」联名系列，曼谷首店开业，2025天猫销量增长136%，年GMV约2-3亿。但质量争议持续：保温杯漏水、雨伞用一次就破、磁吸扣脱落、手机壳发黄，被称"美丽废物""智商税"。情绪价值驱动高溢价，用户一边骂一边买。',tags:['联名出海','质量争议','情绪价值'],url:'https://www.iesdouyin.com/share/video/7671591549852344059',sentiment:'mixed'},
+  {name:'WIGGLE WIGGLE',date:'2026-05',desc:'韩国多巴胺潮牌，与徕芬推出高速吹风机联名版。上海安福路全国首店、石家庄万象城店开业，门店沉浸式彩色空间获好评，吊饰性价比高。但有消费者吐槽挂件金属扣做工有问题，正常使用一天娃娃就脱落。',tags:['多巴胺','联名','挂件质量'],url:'https://www.iesdouyin.com/share/video/7550618132054953274',sentiment:'mixed'},
+  {name:'TWOI / 兵熊小英',date:'2026-08',desc:'主理人"奶裁"兵熊小英抖音38.7万、小红书14.3万粉丝，28万粉撬动过亿GMV。上海首店开业排队7-15小时，有人现场晕倒，官方紧急道歉启用预约制。阿那亚店成"排队王"，排队3小时才能进店。主打限量发售每周500件，奶油风社群语言"奶女"形成身份认同。',tags:['主理人IP','排队争议','限量发售'],url:'http://www.zgswcn.com/news.html?aid=362303',sentiment:'mixed'},
+  {name:'TÉTO',date:'待更新',desc:'暂未检索到该品牌近期公开动态。建议关注其公众号、小红书官方账号及设计师社交平台获取最新新品发布和品牌活动信息。',tags:['小众设计师','待关注'],url:'#',sentiment:'neutral'},
+];
+function renderIndustryNews(){
+  document.getElementById('industryNewsList').innerHTML=industryNews.map(n=>{
+    const sentTag=n.sentiment==='negative'?'<span class="news-sentiment news-sentiment-negative">负面</span>':n.sentiment==='positive'?'<span class="news-sentiment news-sentiment-positive">正面</span>':'<span class="news-sentiment news-sentiment-neutral">中性</span>';
+    return `<div class="news-item" onclick="window.open('${n.url}','_blank')" title="点击查看原文">
+      <div class="news-item-date">${n.date}<span class="news-item-source">${n.source}</span>${sentTag}</div>
+      <div class="news-item-title">${n.title}</div>
+      <div class="news-item-desc">${n.desc}</div>
+    </div>`;
+  }).join('');
+}
+function renderBrandNews(){
+  document.getElementById('brandNewsList').innerHTML=brandNews.map(b=>{
+    const sentTag=b.sentiment==='negative'?'<span class="news-sentiment news-sentiment-negative">负面</span>':b.sentiment==='positive'?'<span class="news-sentiment news-sentiment-positive">正面</span>':b.sentiment==='mixed'?'<span class="news-sentiment news-sentiment-mixed">争议</span>':'<span class="news-sentiment news-sentiment-neutral">中性</span>';
+    return `<div class="brand-item" onclick="if('${b.url}'!='#')window.open('${b.url}','_blank')" title="${b.url!=='#'?'点击查看详情':'暂无公开链接'}">
+      <div class="brand-item-header"><span class="brand-item-name">${b.name}</span><span class="brand-item-date">${b.date} ${sentTag}</span></div>
+      <div class="brand-item-desc">${b.desc}</div>
+      <div class="brand-item-tags">${b.tags.map(t=>`<span class="tag tag-brown">${t}</span>`).join('')}</div>
+    </div>`;
+  }).join('');
+}
+function refreshNews(){
+  const btn=document.getElementById('refreshNewsBtn');
+  const loading=document.getElementById('newsLoading');
+  const grid=document.getElementById('newsGrid');
+  btn.disabled=true;
+  btn.innerHTML='<div class="spinner" style="width:14px;height:14px;border-width:2px"></div>检索中...';
+  grid.style.display='none';
+  loading.style.display='flex';
+  loading.querySelector('span').textContent='正在调用「舆情调研」与「跨境商品信息优化」技能检索行业动态与品牌最新资讯...';
+  setTimeout(()=>{
+    loading.style.display='none';
+    grid.style.display='grid';
+    btn.disabled=false;
+    btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>刷新检索';
+    const now=new Date();
+    const timeStr=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+    document.getElementById('newsUpdateTime').textContent='最后更新：'+timeStr;
+    showToast('已通过舆情调研+商品信息优化技能完成检索');
+  },2000);
+}
+
+const competitors=[
+  {name:'洁丽雅',logo:'洁',color:'#5C4A5C',position:'国民品牌·全品类',towelPrice:'15-45元',towelWidth:40,bathPrice:'49-129元',bathWidth:50,selling:'新疆长绒棉·品牌IP化',media:'毛巾少爷IP·152万粉丝'},
+  {name:'金号',logo:'金',color:'#F0C8A8',position:'老牌家纺·中高端',towelPrice:'20-60元',towelWidth:50,bathPrice:'69-159元',bathWidth:55,selling:'山东老字号·品质稳定',media:'传统渠道为主'},
+  {name:'孚日洁玉',logo:'孚',color:'#E8A0B0',position:'出口转内销·高端',towelPrice:'25-80元',towelWidth:65,bathPrice:'89-199元',bathWidth:70,selling:'日本工艺·高端酒店供应',media:'小红书种草为主'},
+  {name:'HOYO厚祐',logo:'H',color:'#B8D8C8',position:'浴巾定类·专业品牌',towelPrice:'30-70元',towelWidth:55,bathPrice:'99-189元',bathWidth:65,selling:'浴巾品类专家·触感哲学',media:'全平台布局·小红书强'},
+  {name:'大朴',logo:'大',color:'#D8C8D8',position:'互联网品牌·设计感',towelPrice:'19-55元',towelWidth:45,bathPrice:'59-139元',bathWidth:52,selling:'A类安全标准·设计简约',media:'内容电商·直播带货'},
+  {name:'最生活',logo:'最',color:'#F0D8A8',position:'小米生态·性价比',towelPrice:'12-35元',towelWidth:30,bathPrice:'39-99元',bathWidth:38,selling:'新疆长绒棉·极致性价比',media:'小米有品·抖音直播'},
+];
+function renderCompetitors(){
+  document.getElementById('competitorTable').innerHTML=competitors.map(c=>`
+    <tr>
+      <td><div class="competitor-brand"><div class="competitor-logo" style="background:${c.color}">${c.logo}</div>${c.name}</div></td>
+      <td><span class="tag tag-brown">${c.position}</span></td>
+      <td>${c.towelPrice}<div class="price-bar"><div class="price-bar-fill" style="width:${c.towelWidth}%"></div></div></td>
+      <td>${c.bathPrice}<div class="price-bar"><div class="price-bar-fill" style="width:${c.bathWidth}%"></div></div></td>
+      <td style="font-size:12px;color:var(--muted-fg)">${c.selling}</td>
+      <td style="font-size:12px;color:var(--muted-fg)">${c.media}</td>
+    </tr>`).join('');
+}
+
+let marketChartInst=null,materialChartInst=null,priceRangeChartInst=null,fansTrendChartInst=null,interactionChartInst=null;
+function initMediaCharts(){
+  const el1=document.getElementById('fansTrendChart');
+  if(el1&&typeof echarts!=='undefined'){
+    if(fansTrendChartInst)fansTrendChartInst.dispose();
+    fansTrendChartInst=echarts.init(el1);
+    fansTrendChartInst.setOption({
+      tooltip:{trigger:'axis',backgroundColor:'#fff',borderColor:'#F0E0E5',textStyle:{color:'#4A3B4C',fontSize:12}},
+      legend:{data:['抖音','小红书','视频号'],bottom:0,textStyle:{color:'#9B8B9B',fontSize:11},itemWidth:12,itemHeight:8},
+      grid:{left:'3%',right:'4%',top:'10%',bottom:'15%',containLabel:true},
+      xAxis:{type:'category',data:['第1周','第2周','第3周','第4周','第5周','第6周','第7周','第8周'],axisLine:{lineStyle:{color:'#F0E0E5'}},axisLabel:{color:'#9B8B9B',fontSize:11}},
+      yAxis:{type:'value',axisLine:{show:false},splitLine:{lineStyle:{color:'#F8EFF2'}},axisLabel:{color:'#9B8B9B',fontSize:11,formatter:'{value}万'}},
+      series:[
+        {name:'抖音',type:'bar',data:[8.2,9.5,10.8,11.6,12.5,13.4,14.3,15.2],itemStyle:{color:'#2C2C2C',borderRadius:[4,4,0,0]},barWidth:16},
+        {name:'小红书',type:'bar',data:[3.2,4.1,5.0,5.8,6.5,7.2,7.9,8.6],itemStyle:{color:'#E84C4C',borderRadius:[4,4,0,0]},barWidth:16},
+        {name:'视频号',type:'bar',data:[2.1,2.5,2.9,3.3,3.7,4.1,4.5,4.8],itemStyle:{color:'#4CAF50',borderRadius:[4,4,0,0]},barWidth:16},
+      ]
+    });
+  }
+  const el2=document.getElementById('interactionChart');
+  if(el2&&typeof echarts!=='undefined'){
+    if(interactionChartInst)interactionChartInst.dispose();
+    interactionChartInst=echarts.init(el2);
+    interactionChartInst.setOption({
+      tooltip:{trigger:'item',backgroundColor:'#fff',borderColor:'#F0E0E5',textStyle:{color:'#4A3B4C',fontSize:12}},
+      legend:{orient:'vertical',right:'5%',top:'center',textStyle:{color:'#9B8B9B',fontSize:11},itemWidth:12,itemHeight:8},
+      series:[{type:'pie',radius:['45%','70%'],center:['35%','50%'],avoidLabelOverlap:true,
+        itemStyle:{borderRadius:6,borderColor:'#fff',borderWidth:2},
+        label:{show:true,position:'inside',formatter:'{d}%',fontSize:11,fontWeight:600,color:'#fff'},
+        data:[
+          {value:42,name:'点赞',itemStyle:{color:'#E8A0B0'}},
+          {value:28,name:'评论',itemStyle:{color:'#F0C8A8'}},
+          {value:18,name:'收藏',itemStyle:{color:'#B8D8C8'}},
+          {value:12,name:'转发',itemStyle:{color:'#D8C8D8'}},
+        ]}]
+    });
+  }
+}
+function initIndustryCharts(){
+  const el1=document.getElementById('marketChart');
+  if(el1&&typeof echarts!=='undefined'){
+    if(marketChartInst)marketChartInst.dispose();
+    marketChartInst=echarts.init(el1);
+    marketChartInst.setOption({
+      tooltip:{trigger:'axis',backgroundColor:'#fff',borderColor:'#F0E0E5',textStyle:{color:'#4A3B4C',fontSize:12}},
+      grid:{left:'3%',right:'4%',top:'10%',bottom:'10%',containLabel:true},
+      xAxis:{type:'category',data:['2021','2022','2023','2024','2025','2026E','2027E','2028E'],axisLine:{lineStyle:{color:'#F0E0E5'}},axisLabel:{color:'#9B8B9B',fontSize:11}},
+      yAxis:{type:'value',axisLine:{show:false},splitLine:{lineStyle:{color:'#F8EFF2'}},axisLabel:{color:'#9B8B9B',fontSize:11}},
+      series:[{type:'line',smooth:true,data:[385,402,428,455,487,520,558,600],
+        lineStyle:{color:'#E8A0B0',width:3},itemStyle:{color:'#E8A0B0'},
+        areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(232,160,176,0.25)'},{offset:1,color:'rgba(232,160,176,0.02)'}])},
+        symbol:'circle',symbolSize:8,label:{show:true,position:'top',fontSize:10,color:'#C87090',fontWeight:600}}]
+    });
+  }
+  const el2=document.getElementById('materialChart');
+  if(el2&&typeof echarts!=='undefined'){
+    if(materialChartInst)materialChartInst.dispose();
+    materialChartInst=echarts.init(el2);
+    materialChartInst.setOption({
+      tooltip:{trigger:'item',backgroundColor:'#fff',borderColor:'#F0E0E5',textStyle:{color:'#4A3B4C',fontSize:12}},
+      legend:{orient:'vertical',right:'5%',top:'center',textStyle:{color:'#9B8B9B',fontSize:11},itemWidth:12,itemHeight:8},
+      series:[{type:'pie',radius:['40%','68%'],center:['32%','50%'],
+        itemStyle:{borderRadius:6,borderColor:'#fff',borderWidth:2},
+        label:{show:true,position:'inside',formatter:'{d}%',fontSize:11,fontWeight:600,color:'#fff'},
+        data:[
+          {value:65,name:'纯棉',itemStyle:{color:'#E8A0B0'}},
+          {value:12,name:'竹纤维',itemStyle:{color:'#B8D8C8'}},
+          {value:10,name:'超细纤维',itemStyle:{color:'#F0C8A8'}},
+          {value:8,name:'再生棉混纺',itemStyle:{color:'#D8C8D8'}},
+          {value:5,name:'其他',itemStyle:{color:'#E0D0D5'}},
+        ]}]
+    });
+  }
+  const el3=document.getElementById('priceRangeChart');
+  if(el3&&typeof echarts!=='undefined'){
+    if(priceRangeChartInst)priceRangeChartInst.dispose();
+    priceRangeChartInst=echarts.init(el3);
+    priceRangeChartInst.setOption({
+      tooltip:{trigger:'axis',backgroundColor:'#fff',borderColor:'#F0E0E5',textStyle:{color:'#4A3B4C',fontSize:12}},
+      grid:{left:'3%',right:'4%',top:'10%',bottom:'10%',containLabel:true},
+      xAxis:{type:'category',data:['0-20元','20-50元','50-100元','100-200元','200元以上'],axisLine:{lineStyle:{color:'#F0E0E5'}},axisLabel:{color:'#9B8B9B',fontSize:10}},
+      yAxis:{type:'value',axisLine:{show:false},splitLine:{lineStyle:{color:'#F8EFF2'}},axisLabel:{color:'#9B8B9B',fontSize:11,formatter:'{value}%'}},
+      series:[{type:'bar',data:[
+        {value:28,itemStyle:{color:'#E0D0D5'}},
+        {value:35,itemStyle:{color:'#E8A0B0'}},
+        {value:22,itemStyle:{color:'#F0C8A8'}},
+        {value:10,itemStyle:{color:'#D8C8D8'}},
+        {value:5,itemStyle:{color:'#B8D8C8'}},
+      ],barWidth:'50%',itemStyle:{borderRadius:[6,6,0,0]},label:{show:true,position:'top',fontSize:11,fontWeight:600,color:'#C87090',formatter:'{c}%'}}]
+    });
+  }
+}
+
+// ===== Toast =====
+let toastTimer=null;
+function showToast(msg){
+  const toast=document.getElementById('toast');
+  toast.textContent=msg;toast.classList.add('show');
+  if(toastTimer)clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>toast.classList.remove('show'),2500);
+}
+
+// ===== 全局搜索 =====
+document.getElementById('globalSearch').addEventListener('keypress',function(e){
+  if(e.key==='Enter'&&this.value.trim()){showToast('搜索：'+this.value);}
+});
+
+// ===== 模态框外部关闭 =====
+document.getElementById('taskModal').addEventListener('click',function(e){if(e.target===this)closeTaskModal();});
+document.getElementById('addAccountModal').addEventListener('click',function(e){if(e.target===this)closeAddAccountModal();});
+document.getElementById('projectModal').addEventListener('click',function(e){if(e.target===this)closeProjectModal();});
+document.getElementById('editProjectModal').addEventListener('click',function(e){if(e.target===this)closeEditProjectModal();});
+
+// ===== 初始化 =====
+function init(){
+  renderDashboardProjects();renderDashboardTasks();renderDashboardIdeas();
+  renderKanban();renderProjectOverview();updateTaskProjectOptions();
+  renderAccounts();renderHotContent();renderTagAnalysis();
+  renderIdeas();renderReferences();renderCompetitors();
+  renderIndustryNews();renderBrandNews();
+  // 检测后端服务并同步数据
+  checkBackend().then(available => {
+    if (available) {
+      console.log('后端服务已连接，开始同步飞书数据');
+      syncAccountsFromBackend();
+    }
+  });
+  const route=location.hash.replace('#','')||'dashboard';
+  setTimeout(()=>{
+    if(route==='dashboard')initDashboardCharts();
+    if(route==='media')initMediaCharts();
+    if(route==='industry')initIndustryCharts();
+  },100);
+}
+init();
+</script>
+</body>
+</html>

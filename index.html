@@ -314,6 +314,11 @@ body {
 .kanban-column {
   background: rgba(255,248,248,0.7); border-radius: 14px; padding: 14px;
   min-height: 400px; border: 1px solid rgba(240,224,229,0.5);
+  transition: all 0.2s;
+}
+.kanban-column.drag-over {
+  background: #FFF0F2; border-color: var(--accent-pink);
+  box-shadow: 0 0 0 2px rgba(232,160,176,0.3), 0 4px 12px rgba(232,160,176,0.15);
 }
 .kanban-column-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 2px solid; }
 .kanban-column:nth-child(1) .kanban-column-header { border-color: var(--muted-fg); }
@@ -350,6 +355,59 @@ body {
 .kanban-card-date { font-size: 10px; color: var(--muted-fg); display: flex; align-items: center; gap: 3px; }
 .kanban-card-date svg { width: 11px; height: 11px; }
 .kanban-card-priority { position: absolute; top: 10px; right: 10px; width: 6px; height: 6px; border-radius: 50%; }
+.kanban-card-actions { position: absolute; top: 8px; right: 22px; display: flex; gap: 4px; opacity: 0.5; transition: opacity 0.2s; }
+.kanban-card:hover .kanban-card-actions { opacity: 1; }
+.kanban-card-action { width: 20px; height: 20px; border-radius: 6px; background: rgba(255,255,255,0.9); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--muted-fg); transition: all 0.2s; }
+.kanban-card-action:hover { background: var(--accent-pink); color: #fff; border-color: var(--accent-pink); }
+.kanban-card-action svg { width: 11px; height: 11px; }
+.kanban-avatar-name { width: auto; min-width: 22px; padding: 0 4px; font-size: 9px; border-radius: 11px; }
+
+/* 状态进度条 */
+.status-bar { display: flex; align-items: center; justify-content: space-between; margin: 8px 0 10px; padding: 0 2px; }
+.status-step { display: flex; align-items: center; flex: 1; cursor: pointer; position: relative; }
+.status-step:last-child { flex: 0 0 auto; }
+.status-dot { width: 10px; height: 10px; border-radius: 50%; transition: all 0.2s; flex-shrink: 0; z-index: 1; }
+.status-dot.current { transform: scale(1.3); }
+.status-dot.done { opacity: 0.8; }
+.status-line { flex: 1; height: 2px; margin: 0 3px; border-radius: 1px; transition: background 0.2s; }
+.status-step:hover .status-dot { transform: scale(1.4); }
+.status-step:hover .status-dot.current { transform: scale(1.5); }
+
+/* 项目进度概览 */
+.project-overview { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.project-overview-card { background: #fff; border-radius: 14px; padding: 14px 16px; border: 1px solid var(--border); box-shadow: 0 1px 4px rgba(200,112,144,0.06); transition: all 0.2s; cursor: pointer; position: relative; }
+.project-overview-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(200,112,144,0.1); border-color: var(--accent-pink); }
+.project-overview-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.project-overview-name { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--foreground); }
+.project-overview-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.project-overview-status { font-size: 10px; padding: 2px 8px; border-radius: 10px; background: var(--app-shell); color: var(--muted-fg); }
+.project-overview-stats { display: flex; gap: 12px; margin-bottom: 10px; }
+.project-overview-stat { text-align: center; }
+.project-overview-stat-value { font-size: 16px; font-weight: 700; color: var(--foreground); }
+.project-overview-stat-label { font-size: 10px; color: var(--muted-fg); }
+.project-overview-progress { height: 6px; background: var(--app-shell); border-radius: 3px; overflow: hidden; margin-bottom: 6px; }
+.project-overview-progress-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+.project-overview-footer { display: flex; justify-content: space-between; align-items: center; }
+.project-overview-percent { font-size: 12px; font-weight: 600; color: var(--primary); }
+.project-overview-deadline { font-size: 10px; color: var(--muted-fg); }
+
+/* 项目列表 */
+.project-list-item { display: flex; align-items: center; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; background: #fff; transition: all 0.2s; }
+.project-list-item:hover { border-color: var(--accent-pink); background: var(--app-shell); }
+.project-list-dot { width: 12px; height: 12px; border-radius: 50%; margin-right: 10px; flex-shrink: 0; }
+.project-list-info { flex: 1; }
+.project-list-name { font-size: 13px; font-weight: 600; color: var(--foreground); }
+.project-list-meta { font-size: 11px; color: var(--muted-fg); margin-top: 2px; }
+.project-list-actions { display: flex; gap: 6px; }
+.project-list-btn { width: 28px; height: 28px; border-radius: 7px; border: 1px solid var(--border); background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--muted-fg); transition: all 0.2s; }
+.project-list-btn:hover { background: var(--accent-pink); color: #fff; border-color: var(--accent-pink); }
+.project-list-btn.delete:hover { background: #E88080; border-color: #E88080; }
+.project-list-btn svg { width: 14px; height: 14px; }
+
+/* 颜色选择器 */
+.color-option { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: all 0.2s; }
+.color-option:hover { transform: scale(1.1); }
+.color-option.selected { border-color: var(--foreground); }
 
 /* ===== 新媒体数据 ===== */
 .fetch-panel {
@@ -808,10 +866,17 @@ body {
             <div class="page-title">项目看板</div>
             <div class="page-subtitle">毛巾浴巾产品研发全流程进度跟踪，拖拽卡片更新状态</div>
           </div>
-          <button class="btn btn-primary" onclick="openTaskModal()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>新建任务
-          </button>
+          <div style="display:flex;gap:10px">
+            <button class="btn btn-secondary" onclick="openProjectModal()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3z"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>管理项目
+            </button>
+            <button class="btn btn-primary" onclick="openTaskModal()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>新建任务
+            </button>
+          </div>
         </div>
+        <!-- 项目进度概览 -->
+        <div class="project-overview" id="projectOverview"></div>
         <div class="kanban-board" id="kanbanBoard"></div>
       </section>
 
@@ -835,7 +900,6 @@ body {
                 <option value="douyin">抖音</option>
                 <option value="xhs">小红书</option>
                 <option value="wx">视频号</option>
-                <option value="bilibili">B站</option>
               </select>
             </div>
             <div class="fetch-field">
@@ -1037,7 +1101,7 @@ body {
     <div class="form-group"><label class="form-label">任务名称</label><input type="text" class="form-input" id="taskTitle" placeholder="例如：纯棉浴巾打样确认"></div>
     <div class="form-group"><label class="form-label">任务描述</label><textarea class="form-textarea" id="taskDesc" placeholder="详细描述任务内容和要求..."></textarea></div>
     <div class="form-row">
-      <div class="form-group"><label class="form-label">所属项目</label><select class="form-select" id="taskProject"><option>纯棉浴巾系列</option><option>竹纤维毛巾系列</option><option>一次性旅行浴巾</option><option>婴儿纱布毛巾</option><option>品牌视觉升级</option></select></div>
+      <div class="form-group"><label class="form-label">所属项目</label><select class="form-select" id="taskProject"></select></div>
       <div class="form-group"><label class="form-label">优先级</label><select class="form-select" id="taskPriority"><option value="high">高优先级</option><option value="medium" selected>中优先级</option><option value="low">低优先级</option></select></div>
     </div>
     <div class="form-row">
@@ -1048,12 +1112,46 @@ body {
   </div>
 </div>
 
+<!-- 项目管理模态框 -->
+<div class="modal-overlay" id="projectModal">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-title">所属项目管理<div class="modal-close" onclick="closeProjectModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div></div>
+    <div class="form-group">
+      <div style="display:flex;gap:10px;margin-bottom:12px">
+        <input type="text" class="form-input" id="newProjectName" placeholder="新项目名称，例如：纯棉浴巾系列" style="flex:1">
+        <button class="btn btn-primary" onclick="addProject()">添加项目</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">项目列表（点击编辑或删除）</label>
+      <div id="projectList" style="max-height:300px;overflow-y:auto"></div>
+    </div>
+    <div class="form-actions"><button class="btn btn-secondary" onclick="closeProjectModal()">关闭</button></div>
+  </div>
+</div>
+
+<!-- 编辑项目模态框 -->
+<div class="modal-overlay" id="editProjectModal">
+  <div class="modal">
+    <div class="modal-title">编辑项目<div class="modal-close" onclick="closeEditProjectModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div></div>
+    <div class="form-group"><label class="form-label">项目名称</label><input type="text" class="form-input" id="editProjectName"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">项目状态</label><select class="form-select" id="editProjectStatus"><option>未开始</option><option selected>进行中</option><option>待验收</option><option>已完成</option><option>已暂停</option></select></div>
+      <div class="form-group"><label class="form-label">截止日期</label><input type="date" class="form-input" id="editProjectDeadline"></div>
+    </div>
+    <div class="form-group"><label class="form-label">主题颜色</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap" id="editProjectColors"></div>
+    </div>
+    <div class="form-actions"><button class="btn btn-secondary" onclick="closeEditProjectModal()">取消</button><button class="btn btn-primary" onclick="saveProjectEdit()">保存修改</button></div>
+  </div>
+</div>
+
 <!-- 添加账号模态框 -->
 <div class="modal-overlay" id="addAccountModal">
   <div class="modal">
     <div class="modal-title">添加新媒体账号<div class="modal-close" onclick="closeAddAccountModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div></div>
     <div class="form-row">
-      <div class="form-group"><label class="form-label">平台</label><select class="form-select" id="addAccountPlatform"><option value="douyin">抖音</option><option value="xhs">小红书</option><option value="wx">视频号</option><option value="bilibili">B站</option></select></div>
+      <div class="form-group"><label class="form-label">平台</label><select class="form-select" id="addAccountPlatform"><option value="douyin">抖音</option><option value="xhs">小红书</option><option value="wx">视频号</option></select></div>
       <div class="form-group"><label class="form-label">账号名称</label><input type="text" class="form-input" id="addAccountName" placeholder="例如：草莓生活馆"></div>
     </div>
     <div class="form-group"><label class="form-label">账号主页链接</label><input type="text" class="form-input" id="addAccountUrl" placeholder="粘贴账号主页URL，点击卡片可跳转"></div>
@@ -1072,7 +1170,7 @@ body {
 // ===== 后端API配置 =====
 // 部署后端服务后，将此处改为你的后端地址，例如 'https://caomei-workbench.vercel.app'
 // 留空则使用本地localStorage数据模式
-const API_BASE_URL = 'https://tangy-paths-rhyme.loca.lt';
+const API_BASE_URL = 'https://caomei-workbench.onrender.com';
 let backendAvailable = false;
 
 async function checkBackend() {
@@ -1107,8 +1205,8 @@ async function syncAccountsFromBackend() {
   const result = await apiRequest('/api/accounts');
   if (result && result.success && result.data) {
     // 平台映射
-    const platformMap = { '抖音': 'douyin', '小红书': 'xhs', '视频号': 'wx', 'B站': 'bilibili' };
-    const platformColors = { douyin:'#5C4A5C', xhs:'#E8A0B0', wx:'#B8D8C8', bilibili:'#D8C8D8' };
+    const platformMap = { '抖音': 'douyin', '小红书': 'xhs', '视频号': 'wx' };
+    const platformColors = { douyin:'#2C2C2C', xhs:'#E84C4C', wx:'#4CAF50' };
     // 数字格式化
     const formatNum = (n) => {
       n = parseInt(n) || 0;
@@ -1140,6 +1238,11 @@ async function syncAccountsFromBackend() {
       };
     });
     renderAccounts();
+    // 如果当前在总览页面，更新粉丝增长趋势图表
+    const currentRoute=location.hash.replace('#','')||'dashboard';
+    if(currentRoute==='dashboard'&&typeof initDashboardCharts==='function'){
+      initDashboardCharts();
+    }
     showToast('账号数据已从飞书同步');
   }
 }
@@ -1218,28 +1321,84 @@ function renderDashboardIdeas(){
 }
 
 let dashboardFansChart=null;
+function parseFansNum(fansStr){
+  if(!fansStr||fansStr==='--')return 0;
+  const s=String(fansStr).trim();
+  if(s.includes('万')){
+    return parseFloat(s.replace('万',''))*10000;
+  }
+  if(s.includes('亿')){
+    return parseFloat(s.replace('亿',''))*100000000;
+  }
+  return parseInt(s.replace(/[^0-9]/g,''))||0;
+}
 function initDashboardCharts(){
   const el=document.getElementById('dashboard-fans-chart');
   if(!el||typeof echarts==='undefined')return;
   if(dashboardFansChart)dashboardFansChart.dispose();
   dashboardFansChart=echarts.init(el);
-  const days=[],douyin=[],xhs=[],wx=[];
-  for(let i=29;i>=0;i--){ const d=new Date();d.setDate(d.getDate()-i);days.push((d.getMonth()+1)+'/'+d.getDate());
-    const base=120000+(29-i)*800; douyin.push(Math.round(base+Math.sin(i/3)*2000));
-    xhs.push(Math.round(80000+(29-i)*600+Math.cos(i/4)*1500));
-    wx.push(Math.round(45000+(29-i)*400+Math.sin(i/5)*1000));
+
+  // 从实际账号数据中提取平台
+  const chartColors={douyin:'#2C2C2C',xhs:'#E84C4C',wx:'#4CAF50'};
+  const chartNames={douyin:'抖音',xhs:'小红书',wx:'视频号'};
+  const platformFans={};
+
+  if(accounts&&accounts.length>0){
+    accounts.forEach(acc=>{
+      const p=acc.platform||'douyin';
+      const fans=parseFansNum(acc.fans);
+      if(!platformFans[p])platformFans[p]=0;
+      platformFans[p]+=fans;
+    });
   }
+
+  const platforms=Object.keys(platformFans);
+  const days=[];
+  for(let i=29;i>=0;i--){
+    const d=new Date();d.setDate(d.getDate()-i);
+    days.push((d.getMonth()+1)+'/'+d.getDate());
+  }
+
+  let series=[];
+  let legendData=[];
+
+  if(platforms.length===0){
+    // 没有账号时显示提示
+    dashboardFansChart.setOption({
+      title:{text:'暂无账号数据',subtext:'请在新媒体数据中心添加账号',left:'center',top:'center',textStyle:{color:'#9B8B9B',fontSize:14},subtextStyle:{color:'#C0B0C0',fontSize:11}},
+      xAxis:{show:false},yAxis:{show:false},series:[]
+    });
+    return;
+  }
+
+  platforms.forEach((p,idx)=>{
+    const currentFans=platformFans[p];
+    const color=chartColors[p]||'#E8A0B0';
+    const name=chartNames[p]||p;
+    const base=currentFans>0?currentFans:10000*(idx+1);
+    const growthRate=0.003+idx*0.001;
+    const data=[];
+    for(let i=29;i>=0;i--){
+      const progress=(29-i)/29;
+      const val=base*(1-growthRate*(29-i)/29)+Math.sin(i/3+idx)*base*0.005;
+      data.push(Math.round(val));
+    }
+    legendData.push(name);
+    series.push({
+      name:name,type:'line',smooth:true,data:data,
+      lineStyle:{color:color,width:2},itemStyle:{color:color},
+      areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:color+'33'},{offset:1,color:color+'00'}])},
+      symbol:'none'
+    });
+  });
+
   dashboardFansChart.setOption({
     tooltip:{trigger:'axis',backgroundColor:'#fff',borderColor:'#F0E0E5',textStyle:{color:'#4A3B4C',fontSize:12}},
-    legend:{data:['抖音','小红书','视频号'],bottom:0,textStyle:{color:'#9B8B9B',fontSize:11},itemWidth:12,itemHeight:8},
+    legend:{data:legendData,bottom:0,textStyle:{color:'#9B8B9B',fontSize:11},itemWidth:12,itemHeight:8},
     grid:{left:'3%',right:'4%',top:'10%',bottom:'15%',containLabel:true},
     xAxis:{type:'category',data:days,axisLine:{lineStyle:{color:'#F0E0E5'}},axisLabel:{color:'#9B8B9B',fontSize:10,interval:4}},
     yAxis:{type:'value',axisLine:{show:false},splitLine:{lineStyle:{color:'#F8EFF2'}},axisLabel:{color:'#9B8B9B',fontSize:10,formatter:v=>v>=10000?(v/10000).toFixed(0)+'万':v}},
-    series:[
-      {name:'抖音',type:'line',smooth:true,data:douyin,lineStyle:{color:'#E8A0B0',width:2},itemStyle:{color:'#E8A0B0'},areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(232,160,176,0.2)'},{offset:1,color:'rgba(232,160,176,0)'}])},symbol:'none'},
-      {name:'小红书',type:'line',smooth:true,data:xhs,lineStyle:{color:'#F0C8A8',width:2},itemStyle:{color:'#F0C8A8'},areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(240,200,168,0.2)'},{offset:1,color:'rgba(240,200,168,0)'}])},symbol:'none'},
-      {name:'视频号',type:'line',smooth:true,data:wx,lineStyle:{color:'#B8D8C8',width:2},itemStyle:{color:'#B8D8C8'},areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(184,216,200,0.2)'},{offset:1,color:'rgba(184,216,200,0)'}])},symbol:'none'},
-    ]
+    series:series
   });
 }
 
@@ -1247,8 +1406,9 @@ function initDashboardCharts(){
 const columns=[{id:'todo',title:'待开始',color:'#9B8B9B'},{id:'doing',title:'进行中',color:'#F0C8A8'},{id:'review',title:'待验收',color:'#D8C8D8'},{id:'done',title:'已完成',color:'#B8D8C8'}];
 const avatarColors=['#E8A0B0','#F0C8A8','#B8D8C8','#D8C8D8','#F0D8A8','#C8B0A0'];
 function renderKanban(){
+  const filteredTasks=projectFilter?data.tasks.filter(t=>t.project===projectFilter):data.tasks;
   document.getElementById('kanbanBoard').innerHTML=columns.map(col=>{
-    const colTasks=data.tasks.filter(t=>t.status===col.id);
+    const colTasks=filteredTasks.filter(t=>t.status===col.id);
     return `<div class="kanban-column" data-status="${col.id}">
       <div class="kanban-column-header">
         <div class="kanban-column-title">${col.title}<span class="kanban-count">${colTasks.length}</span></div>
@@ -1258,41 +1418,270 @@ function renderKanban(){
     </div>`;
   }).join('');
   document.querySelectorAll('.kanban-card').forEach(c=>{c.addEventListener('dragstart',handleDragStart);c.addEventListener('dragend',handleDragEnd);});
-  document.querySelectorAll('.kanban-cards').forEach(z=>{z.addEventListener('dragover',handleDragOver);z.addEventListener('drop',handleDrop);});
+  document.querySelectorAll('.kanban-cards').forEach(z=>{z.addEventListener('dragover',handleDragOver);z.addEventListener('drop',handleDrop);z.addEventListener('dragenter',handleDragEnter);z.addEventListener('dragleave',handleDragLeave);});
 }
 function renderKanbanCard(t){
   const pc=t.priority==='high'?'#E8A0B0':t.priority==='medium'?'#F0C8A8':'#D8C8D8';
-  const ai=t.assignee?t.assignee.charAt(0):'?';
+  const ai=t.assignee?t.assignee.substring(0,3):'?';
   const ci=t.assignee?t.assignee.charCodeAt(0)%avatarColors.length:0;
+  const statusIndex=columns.findIndex(c=>c.id===t.status);
+  const statusBar=columns.map((col,idx)=>{
+    const isDone=idx<statusIndex;
+    const isCurrent=idx===statusIndex;
+    const dotColor=isDone||isCurrent?col.color:'#E0D5DA';
+    const lineColor=idx<statusIndex?col.color:'#F0E5EA';
+    return `<div class="status-step" onclick="event.stopPropagation();changeTaskStatus(${t.id},'${col.id}')" title="${col.title}">
+      <div class="status-dot ${isCurrent?'current':''} ${isDone?'done':''}" style="background:${dotColor};${isCurrent?'box-shadow:0 0 0 3px '+col.color+'40':''}"></div>
+      ${idx<columns.length-1?`<div class="status-line" style="background:${lineColor}"></div>`:''}
+    </div>`;
+  }).join('');
   return `<div class="kanban-card" draggable="true" data-id="${t.id}">
     <div class="kanban-card-priority" style="background:${pc}"></div>
+    <div class="kanban-card-actions">
+      <span class="kanban-card-action" onclick="event.stopPropagation();editTask(${t.id})" title="编辑任务">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </span>
+      <span class="kanban-card-action" onclick="event.stopPropagation();deleteTask(${t.id})" title="删除任务">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+      </span>
+    </div>
     <div class="kanban-card-title">${t.title}</div>
     <div class="kanban-card-desc">${t.desc}</div>
+    <div class="status-bar" title="点击切换任务状态">${statusBar}</div>
     <div class="kanban-card-footer">
-      <div class="kanban-card-avatars"><div class="kanban-avatar" style="background:${avatarColors[ci]}" title="${t.assignee}">${ai}</div></div>
+      <div class="kanban-card-avatars"><div class="kanban-avatar kanban-avatar-name" style="background:${avatarColors[ci]}" title="${t.assignee}">${ai}</div></div>
       <div class="kanban-card-date"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${t.due}</div>
     </div>
   </div>`;
 }
+function changeTaskStatus(id,status){
+  const task=data.tasks.find(t=>t.id===id);
+  if(!task)return;
+  const oldStatus=task.status;
+  task.status=status;
+  saveData();renderKanban();renderDashboardProjects();renderDashboardTasks();renderProjectOverview();
+  const statusName=columns.find(c=>c.id===status)?.title||status;
+  showToast('任务已移至「'+statusName+'」');
+}
 let draggedId=null;
 function handleDragStart(e){draggedId=parseInt(e.target.dataset.id);e.target.classList.add('dragging');e.dataTransfer.effectAllowed='move';}
-function handleDragEnd(e){e.target.classList.remove('dragging');draggedId=null;}
+function handleDragEnd(e){e.target.classList.remove('dragging');draggedId=null;document.querySelectorAll('.kanban-column').forEach(c=>c.classList.remove('drag-over'));}
 function handleDragOver(e){e.preventDefault();e.dataTransfer.dropEffect='move';}
-function handleDrop(e){e.preventDefault();const status=e.currentTarget.dataset.status;if(draggedId&&status){const task=data.tasks.find(t=>t.id===draggedId);if(task){task.status=status;saveData();renderKanban();renderDashboardProjects();renderDashboardTasks();showToast('任务状态已更新');}}}
-function toggleTask(id){const task=data.tasks.find(t=>t.id===id);if(task){task.status=task.status==='done'?'todo':'done';saveData();renderDashboardTasks();renderKanban();showToast(task.status==='done'?'任务已完成':'任务已恢复');}}
+function handleDragEnter(e){e.preventDefault();const col=e.currentTarget.closest('.kanban-column');if(col)col.classList.add('drag-over');}
+function handleDragLeave(e){const col=e.currentTarget.closest('.kanban-column');if(col&&!col.contains(e.relatedTarget))col.classList.remove('drag-over');}
+function handleDrop(e){e.preventDefault();const status=e.currentTarget.dataset.status;if(draggedId&&status){const task=data.tasks.find(t=>t.id===draggedId);if(task){task.status=status;saveData();renderKanban();renderDashboardProjects();renderDashboardTasks();renderProjectOverview();showToast('任务状态已更新');}}document.querySelectorAll('.kanban-column').forEach(c=>c.classList.remove('drag-over'));}
+function toggleTask(id){const task=data.tasks.find(t=>t.id===id);if(task){task.status=task.status==='done'?'todo':'done';saveData();renderDashboardTasks();renderKanban();renderProjectOverview();showToast(task.status==='done'?'任务已完成':'任务已恢复');}}
+
+// ===== 项目管理 =====
+const projectColors=['#E8A0B0','#F0C8A8','#B8D8C8','#D8C8D8','#F0D8A8','#C8B0A0','#A8C8E8','#E8B8A8'];
+let editingProjectIndex=-1;
+let selectedColor='#E8A0B0';
+
+function calculateProjectProgress(projectName){
+  const projectTasks=data.tasks.filter(t=>t.project===projectName);
+  if(projectTasks.length===0)return 0;
+  const doneTasks=projectTasks.filter(t=>t.status==='done');
+  return Math.round((doneTasks.length/projectTasks.length)*100);
+}
+
+function renderProjectOverview(){
+  const container=document.getElementById('projectOverview');
+  if(!container)return;
+  let filterBar='';
+  if(projectFilter){
+    const project=data.projects.find(p=>p.name===projectFilter);
+    const color=project?project.color:'#E8A0B0';
+    filterBar=`<div style="grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:linear-gradient(135deg, ${color}20 0%, #fff 100%);border-radius:10px;border:1px solid ${color}40;margin-bottom:4px">
+      <span style="font-size:12px;color:var(--foreground)">当前筛选：<strong style="color:${color}">${projectFilter}</strong>（点击其他项目卡片切换，再次点击当前项目取消筛选）</span>
+      <button onclick="filterTasksByProject('${projectFilter}')" style="background:none;border:none;color:var(--muted-fg);cursor:pointer;font-size:12px;padding:4px 8px;border-radius:6px">清除筛选 ✕</button>
+    </div>`;
+  }
+  container.innerHTML=filterBar+data.projects.map((p,idx)=>{
+    const progress=calculateProjectProgress(p.name);
+    const projectTasks=data.tasks.filter(t=>t.project===p.name);
+    const doneCount=projectTasks.filter(t=>t.status==='done').length;
+    const doingCount=projectTasks.filter(t=>t.status==='doing').length;
+    const isActive=projectFilter===p.name;
+    return `<div class="project-overview-card" onclick="filterTasksByProject('${p.name}')" title="点击筛选该项目的任务" style="${isActive?'border-color:'+p.color+';box-shadow:0 0 0 3px '+p.color+'30':''}">
+      <div class="project-overview-header">
+        <div class="project-overview-name"><span class="project-overview-dot" style="background:${p.color}"></span>${p.name}</div>
+        <span class="project-overview-status">${p.status}</span>
+      </div>
+      <div class="project-overview-stats">
+        <div class="project-overview-stat"><div class="project-overview-stat-value">${projectTasks.length}</div><div class="project-overview-stat-label">总任务</div></div>
+        <div class="project-overview-stat"><div class="project-overview-stat-value">${doingCount}</div><div class="project-overview-stat-label">进行中</div></div>
+        <div class="project-overview-stat"><div class="project-overview-stat-value">${doneCount}</div><div class="project-overview-stat-label">已完成</div></div>
+      </div>
+      <div class="project-overview-progress"><div class="project-overview-progress-fill" style="width:${progress}%;background:${p.color}"></div></div>
+      <div class="project-overview-footer">
+        <span class="project-overview-percent">${progress}%</span>
+        <span class="project-overview-deadline">截止 ${p.deadline}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+let projectFilter=null;
+function filterTasksByProject(projectName){
+  projectFilter=projectFilter===projectName?null:projectName;
+  renderKanban();
+  showToast(projectFilter?`已筛选：${projectName}`:'已显示全部项目');
+}
+
+function renderProjectList(){
+  const container=document.getElementById('projectList');
+  if(!container)return;
+  container.innerHTML=data.projects.map((p,idx)=>{
+    const taskCount=data.tasks.filter(t=>t.project===p.name).length;
+    return `<div class="project-list-item">
+      <span class="project-list-dot" style="background:${p.color}"></span>
+      <div class="project-list-info">
+        <div class="project-list-name">${p.name}</div>
+        <div class="project-list-meta">${p.status} · ${taskCount}个任务 · 截止${p.deadline}</div>
+      </div>
+      <div class="project-list-actions">
+        <button class="project-list-btn" onclick="openEditProjectModal(${idx})" title="编辑项目">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="project-list-btn delete" onclick="deleteProject(${idx})" title="删除项目">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderColorOptions(){
+  const container=document.getElementById('editProjectColors');
+  if(!container)return;
+  container.innerHTML=projectColors.map(c=>`<div class="color-option ${c===selectedColor?'selected':''}" style="background:${c}" onclick="selectColor('${c}')"></div>`).join('');
+}
+
+function selectColor(color){
+  selectedColor=color;
+  renderColorOptions();
+}
+
+function openProjectModal(){
+  document.getElementById('projectModal').classList.add('show');
+  document.getElementById('newProjectName').value='';
+  renderProjectList();
+}
+function closeProjectModal(){document.getElementById('projectModal').classList.remove('show');}
+
+function addProject(){
+  const name=document.getElementById('newProjectName').value.trim();
+  if(!name){showToast('请输入项目名称');return;}
+  if(data.projects.find(p=>p.name===name)){showToast('该项目已存在');return;}
+  const color=projectColors[data.projects.length%projectColors.length];
+  data.projects.push({name,progress:0,color,status:'未开始',deadline:'2026-12-31'});
+  saveData();renderProjectList();renderProjectOverview();updateTaskProjectOptions();
+  document.getElementById('newProjectName').value='';
+  showToast('项目「'+name+'」已添加');
+}
+
+function deleteProject(idx){
+  const project=data.projects[idx];
+  if(!project)return;
+  const taskCount=data.tasks.filter(t=>t.project===project.name).length;
+  if(taskCount>0){
+    if(!confirm(`项目「${project.name}」下有${taskCount}个任务，删除项目后这些任务的所属项目将变为「未分类」。确定要删除吗？`))return;
+    data.tasks.forEach(t=>{if(t.project===project.name)t.project='未分类';});
+  }else{
+    if(!confirm(`确定要删除项目「${project.name}」吗？`))return;
+  }
+  data.projects.splice(idx,1);
+  saveData();renderProjectList();renderProjectOverview();renderKanban();updateTaskProjectOptions();
+  showToast('项目已删除');
+}
+
+function openEditProjectModal(idx){
+  editingProjectIndex=idx;
+  const project=data.projects[idx];
+  if(!project)return;
+  document.getElementById('editProjectName').value=project.name;
+  document.getElementById('editProjectStatus').value=project.status;
+  document.getElementById('editProjectDeadline').value=project.deadline;
+  selectedColor=project.color;
+  renderColorOptions();
+  document.getElementById('editProjectModal').classList.add('show');
+}
+function closeEditProjectModal(){document.getElementById('editProjectModal').classList.remove('show');editingProjectIndex=-1;}
+
+function saveProjectEdit(){
+  const project=data.projects[editingProjectIndex];
+  if(!project)return;
+  const oldName=project.name;
+  const newName=document.getElementById('editProjectName').value.trim();
+  if(!newName){showToast('请输入项目名称');return;}
+  if(newName!==oldName&&data.projects.find((p,i)=>i!==editingProjectIndex&&p.name===newName)){showToast('该项目名称已存在');return;}
+  project.name=newName;
+  project.status=document.getElementById('editProjectStatus').value;
+  project.deadline=document.getElementById('editProjectDeadline').value;
+  project.color=selectedColor;
+  if(oldName!==newName){
+    data.tasks.forEach(t=>{if(t.project===oldName)t.project=newName;});
+  }
+  saveData();renderProjectList();renderProjectOverview();renderKanban();renderDashboardProjects();updateTaskProjectOptions();
+  closeEditProjectModal();
+  showToast('项目修改已保存');
+}
+
+function updateTaskProjectOptions(){
+  const select=document.getElementById('taskProject');
+  if(!select)return;
+  select.innerHTML=data.projects.map(p=>`<option value="${p.name}">${p.name}</option>`).join('');
+}
 
 // ===== 任务模态框 =====
 let modalDefaultStatus='todo';
 function openTaskModal(status='todo'){modalDefaultStatus=status;document.getElementById('taskModal').classList.add('show');document.getElementById('taskTitle').value='';document.getElementById('taskDesc').value='';document.getElementById('taskAssignee').value='';document.getElementById('taskDue').value='';}
-function closeTaskModal(){document.getElementById('taskModal').classList.remove('show');}
+function closeTaskModal(){document.getElementById('taskModal').classList.remove('show');editingTaskId=null;document.querySelector('#taskModal .modal-title').innerHTML='新建任务<div class="modal-close" onclick="closeTaskModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>';const btn=document.querySelector('#taskModal .btn-primary');btn.textContent='创建任务';btn.onclick=createTask;}
 function createTask(){const title=document.getElementById('taskTitle').value.trim();if(!title){showToast('请输入任务名称');return;}
   const nt={id:Date.now(),title,desc:document.getElementById('taskDesc').value.trim()||'暂无描述',project:document.getElementById('taskProject').value,status:modalDefaultStatus,priority:document.getElementById('taskPriority').value,assignee:document.getElementById('taskAssignee').value.trim()||'未分配',due:document.getElementById('taskDue').value||'2026-09-30'};
   data.tasks.unshift(nt);saveData();renderKanban();renderDashboardTasks();closeTaskModal();showToast('任务创建成功');
 }
+let editingTaskId=null;
+function editTask(id){
+  const task=data.tasks.find(t=>t.id===id);
+  if(!task)return;
+  editingTaskId=id;
+  modalDefaultStatus=task.status;
+  document.querySelector('#taskModal .modal-title').innerHTML='编辑任务<div class="modal-close" onclick="closeTaskModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>';
+  document.getElementById('taskTitle').value=task.title;
+  document.getElementById('taskDesc').value=task.desc;
+  document.getElementById('taskProject').value=task.project;
+  document.getElementById('taskPriority').value=task.priority;
+  document.getElementById('taskAssignee').value=task.assignee;
+  document.getElementById('taskDue').value=task.due;
+  document.querySelector('#taskModal .btn-primary').textContent='保存修改';
+  document.querySelector('#taskModal .btn-primary').onclick=updateTask;
+  document.getElementById('taskModal').classList.add('show');
+}
+function updateTask(){
+  const task=data.tasks.find(t=>t.id===editingTaskId);
+  if(!task)return;
+  const title=document.getElementById('taskTitle').value.trim();
+  if(!title){showToast('请输入任务名称');return;}
+  task.title=title;
+  task.desc=document.getElementById('taskDesc').value.trim()||'暂无描述';
+  task.project=document.getElementById('taskProject').value;
+  task.priority=document.getElementById('taskPriority').value;
+  task.assignee=document.getElementById('taskAssignee').value.trim()||'未分配';
+  task.due=document.getElementById('taskDue').value||'2026-09-30';
+  saveData();renderKanban();renderDashboardTasks();closeTaskModal();showToast('任务修改成功');
+}
+function deleteTask(id){
+  const task=data.tasks.find(t=>t.id===id);
+  if(!task)return;
+  if(!confirm(`确定要删除任务「${task.title}」吗？`))return;
+  data.tasks=data.tasks.filter(t=>t.id!==id);
+  saveData();renderKanban();renderDashboardTasks();showToast('任务已删除');
+}
 
 // ===== 新媒体账号数据 =====
 let accounts=[
-  {platform:'douyin',name:'老爸评测',handle:'抖音号：daddylab',avatar:'老',color:'#5C4A5C',fans:'2372.2万',likes:'2.5亿',videos:1994,fansChange:'+2.1%',url:'https://www.douyin.com/user/MS4wLjABAAAA4mK5-neDn4l1d90btRf66_YvKR8T25qE4s4W02opMzA',verified:'杭州老爸评测科技股份有限公司'},
+  {platform:'douyin',name:'老爸评测',handle:'抖音号：daddylab',avatar:'老',color:'#2C2C2C',fans:'2372.2万',likes:'2.5亿',videos:1994,fansChange:'+2.1%',url:'https://www.douyin.com/user/MS4wLjABAAAA4mK5-neDn4l1d90btRf66_YvKR8T25qE4s4W02opMzA',verified:'杭州老爸评测科技股份有限公司'},
 ];
 function renderAccounts(){
   const cardsHtml=accounts.map((a,idx)=>`
@@ -1350,8 +1739,8 @@ function addAccount(){
   const videos=document.getElementById('addAccountVideos').value.trim()||'--';
   if(!name){showToast('请输入账号名称');return;}
   if(!url){showToast('请输入账号主页链接');return;}
-  const platformColors={douyin:'#5C4A5C',xhs:'#E8A0B0',wx:'#B8D8C8',bilibili:'#D8C8D8'};
-  const platformHandles={douyin:'抖音',xhs:'小红书',wx:'视频号',bilibili:'B站'};
+  const platformColors={douyin:'#2C2C2C',xhs:'#E84C4C',wx:'#4CAF50'};
+  const platformHandles={douyin:'抖音',xhs:'小红书',wx:'视频号'};
   accounts.push({
     platform,name,
     handle:platformHandles[platform]+'账号',
@@ -1380,14 +1769,13 @@ function fetchAccount(){
   setTimeout(()=>{
     loading.style.display='none';content.style.display='block';
     btn.disabled=false;btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>重新抓取';
-    const platformNames={douyin:'抖音',xhs:'小红书',wx:'视频号',bilibili:'B站'};
+    const platformNames={douyin:'抖音',xhs:'小红书',wx:'视频号'};
     const displayName=accountId.replace(/^@/,'').split('/').pop().substring(0,12);
     // 构造跳转链接
     let jumpUrl=accountId;
     if(!accountId.startsWith('http')){
       if(platform==='douyin') jumpUrl='https://www.douyin.com/search/'+encodeURIComponent(accountId);
       else if(platform==='xhs') jumpUrl='https://www.xiaohongshu.com/search_result?keyword='+encodeURIComponent(accountId);
-      else if(platform==='bilibili') jumpUrl='https://search.bilibili.com/all?keyword='+encodeURIComponent(accountId);
       else jumpUrl='#';
     }
     document.getElementById('fetchAccountCards').innerHTML=`
@@ -1427,7 +1815,7 @@ function renderHotContent(){
       <div class="hot-content-info">
         <div class="hot-content-title" style="cursor:pointer;color:var(--primary)" onclick="window.open('${c.url}','_blank')" title="点击查看原视频">${c.title}</div>
         <div class="hot-content-meta">
-          <span class="tag tag-${c.platform==='douyin'?'brown':c.platform==='xhs'?'pink':c.platform==='wx'?'green':'purple'}">${c.platform==='douyin'?'抖音':c.platform==='xhs'?'小红书':c.platform==='wx'?'视频号':'B站'}</span>
+          <span class="tag tag-${c.platform==='douyin'?'brown':c.platform==='xhs'?'pink':'green'}">${c.platform==='douyin'?'抖音':c.platform==='xhs'?'小红书':'视频号'}</span>
           <span style="color:var(--accent-deep-pink);font-weight:500">@${c.account}</span>
           <span>播放 ${c.views}</span>
         </div>
@@ -1678,9 +2066,9 @@ function initMediaCharts(){
       xAxis:{type:'category',data:['第1周','第2周','第3周','第4周','第5周','第6周','第7周','第8周'],axisLine:{lineStyle:{color:'#F0E0E5'}},axisLabel:{color:'#9B8B9B',fontSize:11}},
       yAxis:{type:'value',axisLine:{show:false},splitLine:{lineStyle:{color:'#F8EFF2'}},axisLabel:{color:'#9B8B9B',fontSize:11,formatter:'{value}万'}},
       series:[
-        {name:'抖音',type:'bar',data:[8.2,9.5,10.8,11.6,12.5,13.4,14.3,15.2],itemStyle:{color:'#E8A0B0',borderRadius:[4,4,0,0]},barWidth:16},
-        {name:'小红书',type:'bar',data:[3.2,4.1,5.0,5.8,6.5,7.2,7.9,8.6],itemStyle:{color:'#F0C8A8',borderRadius:[4,4,0,0]},barWidth:16},
-        {name:'视频号',type:'bar',data:[2.1,2.5,2.9,3.3,3.7,4.1,4.5,4.8],itemStyle:{color:'#B8D8C8',borderRadius:[4,4,0,0]},barWidth:16},
+        {name:'抖音',type:'bar',data:[8.2,9.5,10.8,11.6,12.5,13.4,14.3,15.2],itemStyle:{color:'#2C2C2C',borderRadius:[4,4,0,0]},barWidth:16},
+        {name:'小红书',type:'bar',data:[3.2,4.1,5.0,5.8,6.5,7.2,7.9,8.6],itemStyle:{color:'#E84C4C',borderRadius:[4,4,0,0]},barWidth:16},
+        {name:'视频号',type:'bar',data:[2.1,2.5,2.9,3.3,3.7,4.1,4.5,4.8],itemStyle:{color:'#4CAF50',borderRadius:[4,4,0,0]},barWidth:16},
       ]
     });
   }
@@ -1775,11 +2163,14 @@ document.getElementById('globalSearch').addEventListener('keypress',function(e){
 // ===== 模态框外部关闭 =====
 document.getElementById('taskModal').addEventListener('click',function(e){if(e.target===this)closeTaskModal();});
 document.getElementById('addAccountModal').addEventListener('click',function(e){if(e.target===this)closeAddAccountModal();});
+document.getElementById('projectModal').addEventListener('click',function(e){if(e.target===this)closeProjectModal();});
+document.getElementById('editProjectModal').addEventListener('click',function(e){if(e.target===this)closeEditProjectModal();});
 
 // ===== 初始化 =====
 function init(){
   renderDashboardProjects();renderDashboardTasks();renderDashboardIdeas();
-  renderKanban();renderAccounts();renderHotContent();renderTagAnalysis();
+  renderKanban();renderProjectOverview();updateTaskProjectOptions();
+  renderAccounts();renderHotContent();renderTagAnalysis();
   renderIdeas();renderReferences();renderCompetitors();
   renderIndustryNews();renderBrandNews();
   // 检测后端服务并同步数据

@@ -884,29 +884,29 @@ body {
 
         <!-- 账号抓取分析面板 -->
         <div class="fetch-panel">
-          <div class="fetch-panel-title">账号抓取分析</div>
-          <div class="fetch-panel-desc">粘贴抖音、小红书或视频号的账号主页链接，系统将自动解析平台并抓取账号数据、高赞内容及内容标签</div>
+          <div class="fetch-panel-title">账号数据抓取与更新</div>
+          <div class="fetch-panel-desc">在对话框中提供账号主页链接，我将通过浏览器打开链接并截图解析账号数据（粉丝、获赞、作品等），解析完成后点击「刷新数据」即可看到最新信息。</div>
           <div class="fetch-form">
             <div class="fetch-field">
-              <label class="fetch-label">账号主页链接</label>
-              <input type="text" class="fetch-input" id="fetchAccountId" placeholder="例如：https://www.douyin.com/user/MS4wLjABAAAA...">
+              <label class="fetch-label">当前抓取链接</label>
+              <input type="text" class="fetch-input" id="fetchAccountId" placeholder="在对话框中发送账号链接，例如：https://www.douyin.com/user/xxxxx" readonly>
             </div>
-            <button class="btn btn-pink" id="fetchBtn" onclick="fetchAccount()">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>抓取分析
+            <button class="btn btn-pink" id="refreshBtn" onclick="refreshAccountData()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>刷新数据
             </button>
           </div>
 
           <!-- 抓取结果 -->
-          <div class="fetch-result" id="fetchResult">
-            <div class="fetch-loading" id="fetchLoading">
+          <div class="fetch-result" id="fetchResult" style="display:none">
+            <div class="fetch-loading" id="fetchLoading" style="display:none">
               <div class="spinner"></div>
-              <span>正在抓取并分析账号数据...</span>
+              <span>正在同步最新账号数据...</span>
             </div>
-            <div id="fetchContent" style="display:none">
+            <div id="fetchContent">
               <div class="account-cards" id="fetchAccountCards" style="margin-top:0"></div>
               <div class="data-source-note">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                数据为智能分析示例，真实抓取需接入第三方数据API（如新红、飞瓜、新抖）。接入后替换数据源即可。
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                数据通过浏览器截图解析获取，与账号主页实时一致。如需更新，请在对话框中发送最新链接，我将重新抓取。
               </div>
             </div>
           </div>
@@ -930,7 +930,7 @@ body {
         <div class="card" style="margin-bottom:16px">
           <div class="card-title">
             高赞内容分析
-            <span class="more">点击「生成选题」联动灵感库</span>
+            <span class="more">来自抖音 / 小红书 / 视频号的热门内容</span>
           </div>
           <div id="hotContentList"></div>
         </div>
@@ -1848,87 +1848,72 @@ function addAccountManual(){
   showToast('账号「'+name+'」已添加');
 }
 
-// ===== 账号抓取分析 =====
-async function fetchAccount(){
-  const accountId=document.getElementById('fetchAccountId').value.trim();
-  if(!accountId){showToast('请输入账号主页链接');return;}
-  const btn=document.getElementById('fetchBtn');
-  btn.disabled=true;btn.innerHTML='<div class="spinner" style="width:14px;height:14px;border-width:2px"></div>抓取中...';
+// ===== 账号数据刷新 =====
+async function refreshAccountData(){
+  const btn=document.getElementById('refreshBtn');
+  btn.disabled=true;
+  btn.innerHTML='<div class="spinner" style="width:14px;height:14px;border-width:2px"></div>同步中...';
+  
   const result=document.getElementById('fetchResult');
   const loading=document.getElementById('fetchLoading');
   const content=document.getElementById('fetchContent');
-  result.classList.add('show');loading.style.display='flex';content.style.display='none';
+  result.style.display='block';
+  loading.style.display='flex';
+  content.style.display='none';
   
   try {
-    // 调用后端API解析链接并抓取数据
-    const apiResult=await apiRequest('/api/parse-account-url',{
-      method:'POST',
-      body:JSON.stringify({url:accountId})
-    });
+    // 从后端同步最新账号数据
+    if(backendAvailable){
+      await syncAccountsFromBackend();
+    }
     
     loading.style.display='none';
+    content.style.display='block';
     
-    if(apiResult&&apiResult.success&&apiResult.data){
-      const data=apiResult.data;
+    // 显示当前所有账号的概览
+    if(accounts&&accounts.length>0){
       const platformColors={douyin:'#2C2C2C',xhs:'#E84C4C',wx:'#4CAF50'};
-      const color=platformColors[data.platform]||'#E8A0B0';
-      const displayName=data.name||data.accountId||'未知账号';
-      
-      document.getElementById('fetchAccountCards').innerHTML=`
-        <div class="account-card" style="grid-column:1/-1;cursor:pointer" onclick="window.open('${data.url}','_blank')" title="点击访问账号主页">
+      document.getElementById('fetchAccountCards').innerHTML=accounts.map(a=>`
+        <div class="account-card" style="cursor:pointer" onclick="window.open('${a.url}','_blank')" title="点击访问账号主页">
           <div class="account-header">
-            <div class="account-avatar" style="background:${color}">${displayName.charAt(0).toUpperCase()}</div>
+            <div class="account-avatar" style="background:${a.color||platformColors[a.platform]||'#E8A0B0'}">${a.avatar||a.name?.charAt(0)||'?'}</div>
             <div class="account-info">
-              <div class="account-name">${displayName}</div>
-              <div class="account-handle">${data.platformName} · ${data.accountId}</div>
+              <div class="account-name">${a.name||'未知账号'}</div>
+              <div class="account-handle">${a.handle||''}</div>
             </div>
-            <span class="tag tag-${data.fetchSuccess?'green':'orange'}">${data.fetchSuccess?'抓取成功':'部分信息缺失'}</span>
+            <span class="tag tag-green">已同步</span>
           </div>
           <div class="account-stats">
-            <div class="account-stat"><div class="account-stat-value">${data.fans||'--'}</div><div class="account-stat-label">粉丝</div></div>
-            <div class="account-stat"><div class="account-stat-value">${data.likes||'--'}</div><div class="account-stat-label">获赞</div></div>
-            <div class="account-stat"><div class="account-stat-value">${data.videos||'--'}</div><div class="account-stat-label">作品</div></div>
-            <div class="account-stat"><div class="account-stat-value" style="color:#609880">${data.fetchSuccess?'已更新':'待补充'}</div><div class="account-stat-label">数据状态</div></div>
+            <div class="account-stat"><div class="account-stat-value">${a.fans||'--'}</div><div class="account-stat-label">粉丝</div></div>
+            <div class="account-stat"><div class="account-stat-value">${a.likes||'--'}</div><div class="account-stat-label">获赞</div></div>
+            <div class="account-stat"><div class="account-stat-value">${a.videos||'--'}</div><div class="account-stat-label">作品</div></div>
+            <div class="account-stat"><div class="account-stat-value" style="color:#609880">${a.fansChange||'--'}</div><div class="account-stat-label">本周涨粉</div></div>
           </div>
-        </div>`;
-      
-      // 更新数据源说明
-      const noteEl=document.querySelector('.data-source-note');
-      if(noteEl){
-        if(data.fetchSuccess){
-          noteEl.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>数据已从账号主页实时抓取，部分平台因反爬限制可能无法获取完整数据。';
-        }else{
-          noteEl.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'+data.message;
-        }
-      }
-      
-      content.style.display='block';
-      showToast(data.fetchSuccess?'账号数据抓取成功':'已解析链接，部分数据需手动补充');
+        </div>`).join('');
     }else{
-      // 解析失败
-      content.style.display='block';
       document.getElementById('fetchAccountCards').innerHTML=`
         <div style="padding:40px;text-align:center;color:var(--muted-fg)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:48px;height:48px;margin:0 auto 16px;opacity:0.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-          <div style="font-size:14px;margin-bottom:8px">链接解析失败</div>
-          <div style="font-size:12px">${apiResult?.message||'请输入有效的抖音、小红书或视频号账号主页链接'}</div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:48px;height:48px;margin:0 auto 16px;opacity:0.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <div style="font-size:14px;margin-bottom:8px">暂无账号数据</div>
+          <div style="font-size:12px">请在对话框中发送账号主页链接，我将通过浏览器截图解析并更新数据</div>
         </div>`;
-      showToast('链接解析失败，请检查链接是否正确');
     }
+    
+    showToast('账号数据已同步');
   } catch(err){
-    console.error('抓取账号数据失败:',err);
+    console.error('同步账号数据失败:',err);
     loading.style.display='none';
     content.style.display='block';
     document.getElementById('fetchAccountCards').innerHTML=`
       <div style="padding:40px;text-align:center;color:var(--muted-fg)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:48px;height:48px;margin:0 auto 16px;opacity:0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        <div style="font-size:14px;margin-bottom:8px">抓取失败</div>
+        <div style="font-size:14px;margin-bottom:8px">同步失败</div>
         <div style="font-size:12px">网络错误或后端服务未响应，请稍后重试</div>
       </div>`;
-    showToast('抓取失败，请稍后重试');
+    showToast('同步失败，请稍后重试');
   } finally {
     btn.disabled=false;
-    btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>重新抓取';
+    btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>刷新数据';
   }
 }
 

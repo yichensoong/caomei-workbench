@@ -1,1 +1,0 @@
-{"manifestVersion":"2.0","builds":{"@vercel/node:.":{"runtime":"node","runtimeVersion":{"resolved":"24"},"dependencies":[],"buildType":"app","root":".","builder":"@vercel/node"}},"services":{}}

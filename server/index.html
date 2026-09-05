@@ -885,19 +885,11 @@ body {
         <!-- 账号抓取分析面板 -->
         <div class="fetch-panel">
           <div class="fetch-panel-title">账号抓取分析</div>
-          <div class="fetch-panel-desc">选择平台并输入账号ID或主页链接，系统将分析账号数据、高赞内容及内容标签，并可一键生成选题灵感</div>
+          <div class="fetch-panel-desc">粘贴抖音、小红书或视频号的账号主页链接，系统将自动解析平台并抓取账号数据、高赞内容及内容标签</div>
           <div class="fetch-form">
-            <div class="fetch-field" style="flex:0 0 140px">
-              <label class="fetch-label">平台</label>
-              <select class="fetch-select" id="fetchPlatform">
-                <option value="douyin">抖音</option>
-                <option value="xhs">小红书</option>
-                <option value="wx">视频号</option>
-              </select>
-            </div>
             <div class="fetch-field">
-              <label class="fetch-label">账号ID / 主页链接</label>
-              <input type="text" class="fetch-input" id="fetchAccountId" placeholder="例如：@caomei_life 或 https://www.douyin.com/user/xxx">
+              <label class="fetch-label">账号主页链接</label>
+              <input type="text" class="fetch-input" id="fetchAccountId" placeholder="例如：https://www.douyin.com/user/MS4wLjABAAAA...">
             </div>
             <button class="btn btn-pink" id="fetchBtn" onclick="fetchAccount()">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>抓取分析
@@ -1089,17 +1081,44 @@ body {
 <div class="modal-overlay" id="addAccountModal">
   <div class="modal">
     <div class="modal-title">添加新媒体账号<div class="modal-close" onclick="closeAddAccountModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div></div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">平台</label><select class="form-select" id="addAccountPlatform"><option value="douyin">抖音</option><option value="xhs">小红书</option><option value="wx">视频号</option></select></div>
-      <div class="form-group"><label class="form-label">账号名称</label><input type="text" class="form-input" id="addAccountName" placeholder="例如：草莓生活馆"></div>
+    <div class="form-group">
+      <label class="form-label">账号主页链接</label>
+      <input type="text" class="form-input" id="addAccountUrl" placeholder="粘贴抖音、小红书或视频号的账号主页链接，例如：https://www.douyin.com/user/xxxxx">
     </div>
-    <div class="form-group"><label class="form-label">账号主页链接</label><input type="text" class="form-input" id="addAccountUrl" placeholder="粘贴账号主页URL，点击卡片可跳转"></div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">粉丝数</label><input type="text" class="form-input" id="addAccountFans" placeholder="例如：15.2万"></div>
-      <div class="form-group"><label class="form-label">获赞数</label><input type="text" class="form-input" id="addAccountLikes" placeholder="例如：86.5万"></div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeAddAccountModal()">取消</button>
+      <button class="btn btn-primary" id="parseAccountBtn" onclick="parseAndAddAccount()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>解析并添加
+      </button>
     </div>
-    <div class="form-group"><label class="form-label">作品数</label><input type="text" class="form-input" id="addAccountVideos" placeholder="例如：42"></div>
-    <div class="form-actions"><button class="btn btn-secondary" onclick="closeAddAccountModal()">取消</button><button class="btn btn-primary" onclick="addAccount()">添加账号</button></div>
+    <!-- 解析结果展示 -->
+    <div id="parseResult" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
+      <div id="parseLoading" style="display:none;align-items:center;gap:8px;color:var(--muted-fg);font-size:13px">
+        <div class="spinner" style="width:16px;height:16px;border-width:2px"></div>正在解析链接并抓取账号数据...
+      </div>
+      <div id="parseContent" style="display:none">
+        <div id="parseAccountCard"></div>
+        <div id="parseMessage" style="margin-top:12px;padding:10px 14px;border-radius:8px;font-size:12px;line-height:1.5"></div>
+        <div class="form-actions" style="margin-top:16px">
+          <button class="btn btn-secondary" onclick="closeAddAccountModal()">取消</button>
+          <button class="btn btn-primary" id="confirmAddBtn" onclick="confirmAddAccount()">确认添加</button>
+        </div>
+      </div>
+    </div>
+    <!-- 手动填写表单（抓取失败时显示） -->
+    <div id="manualForm" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
+      <div style="font-size:12px;color:var(--muted-fg);margin-bottom:12px">自动抓取失败，请手动填写账号信息：</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">平台</label><select class="form-select" id="addAccountPlatform"><option value="douyin">抖音</option><option value="xhs">小红书</option><option value="wx">视频号</option></select></div>
+        <div class="form-group"><label class="form-label">账号名称</label><input type="text" class="form-input" id="addAccountName" placeholder="例如：草莓生活馆"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">粉丝数</label><input type="text" class="form-input" id="addAccountFans" placeholder="例如：15.2万"></div>
+        <div class="form-group"><label class="form-label">获赞数</label><input type="text" class="form-input" id="addAccountLikes" placeholder="例如：86.5万"></div>
+      </div>
+      <div class="form-group"><label class="form-label">作品数</label><input type="text" class="form-input" id="addAccountVideos" placeholder="例如：42"></div>
+      <div class="form-actions"><button class="btn btn-secondary" onclick="closeAddAccountModal()">取消</button><button class="btn btn-primary" onclick="addAccountManual()">手动添加</button></div>
+    </div>
   </div>
 </div>
 
@@ -1681,18 +1700,129 @@ function deleteAccount(idx){
   renderAccounts();
   showToast('已删除账号「'+name+'」');
 }
+let parsedAccountData=null;
 function openAddAccountModal(){
   document.getElementById('addAccountModal').classList.add('show');
+  // 重置表单
+  document.getElementById('addAccountUrl').value='';
+  document.getElementById('parseResult').style.display='none';
+  document.getElementById('manualForm').style.display='none';
+  document.getElementById('parseLoading').style.display='none';
+  document.getElementById('parseContent').style.display='none';
+  parsedAccountData=null;
 }
 function closeAddAccountModal(){
   document.getElementById('addAccountModal').classList.remove('show');
-  document.getElementById('addAccountName').value='';
-  document.getElementById('addAccountUrl').value='';
-  document.getElementById('addAccountFans').value='';
-  document.getElementById('addAccountLikes').value='';
-  document.getElementById('addAccountVideos').value='';
 }
-function addAccount(){
+
+// 解析链接并抓取账号数据
+async function parseAndAddAccount(){
+  const url=document.getElementById('addAccountUrl').value.trim();
+  if(!url){showToast('请输入账号主页链接');return;}
+  
+  const btn=document.getElementById('parseAccountBtn');
+  btn.disabled=true;
+  btn.innerHTML='<div class="spinner" style="width:14px;height:14px;border-width:2px"></div>解析中...';
+  
+  document.getElementById('parseResult').style.display='block';
+  document.getElementById('parseLoading').style.display='flex';
+  document.getElementById('parseContent').style.display='none';
+  document.getElementById('manualForm').style.display='none';
+  
+  try {
+    // 调用后端API解析链接并抓取数据
+    const result=await apiRequest('/api/parse-account-url',{
+      method:'POST',
+      body:JSON.stringify({url})
+    });
+    
+    document.getElementById('parseLoading').style.display='none';
+    
+    if(result&&result.success&&result.data){
+      parsedAccountData=result.data;
+      const data=result.data;
+      
+      // 显示解析结果
+      const platformColors={douyin:'#2C2C2C',xhs:'#E84C4C',wx:'#4CAF50'};
+      const color=platformColors[data.platform]||'#E8A0B0';
+      const displayName=data.name||data.accountId||'未知账号';
+      
+      document.getElementById('parseAccountCard').innerHTML=`
+        <div class="account-card" style="cursor:default">
+          <div class="account-header">
+            <div class="account-avatar" style="background:${color}">${displayName.charAt(0).toUpperCase()}</div>
+            <div class="account-info">
+              <div class="account-name">${displayName}</div>
+              <div class="account-handle">${data.platformName} · ${data.accountId}</div>
+            </div>
+            <span class="tag tag-${data.fetchSuccess?'green':'orange'}">${data.fetchSuccess?'抓取成功':'部分信息缺失'}</span>
+          </div>
+          <div class="account-stats">
+            <div class="account-stat"><div class="account-stat-value">${data.fans||'--'}</div><div class="account-stat-label">粉丝</div></div>
+            <div class="account-stat"><div class="account-stat-value">${data.likes||'--'}</div><div class="account-stat-label">获赞</div></div>
+            <div class="account-stat"><div class="account-stat-value">${data.videos||'--'}</div><div class="account-stat-label">作品</div></div>
+          </div>
+        </div>`;
+      
+      const msgEl=document.getElementById('parseMessage');
+      if(data.fetchSuccess){
+        msgEl.style.background='rgba(184,216,200,0.2)';
+        msgEl.style.color='#5A8A6A';
+        msgEl.textContent='✓ '+data.message;
+      }else{
+        msgEl.style.background='rgba(240,200,168,0.2)';
+        msgEl.style.color='#A07050';
+        msgEl.textContent='⚠ '+data.message;
+      }
+      
+      document.getElementById('parseContent').style.display='block';
+    }else{
+      // 解析失败，显示手动填写表单
+      document.getElementById('parseResult').style.display='none';
+      document.getElementById('manualForm').style.display='block';
+      showToast(result?.message||'链接解析失败，请手动填写');
+    }
+  } catch(err){
+    console.error('解析账号链接失败:',err);
+    document.getElementById('parseLoading').style.display='none';
+    document.getElementById('parseResult').style.display='none';
+    document.getElementById('manualForm').style.display='block';
+    showToast('解析失败，请手动填写账号信息');
+  } finally {
+    btn.disabled=false;
+    btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>重新解析';
+  }
+}
+
+// 确认添加解析到的账号
+function confirmAddAccount(){
+  if(!parsedAccountData){showToast('请先解析账号链接');return;}
+  const data=parsedAccountData;
+  const platformColors={douyin:'#2C2C2C',xhs:'#E84C4C',wx:'#4CAF50'};
+  const platformHandles={douyin:'抖音',xhs:'小红书',wx:'视频号'};
+  const name=data.name||data.accountId||'未知账号';
+  
+  accounts.push({
+    platform:data.platform,
+    name,
+    handle:platformHandles[data.platform]+'账号',
+    avatar:name.charAt(0).toUpperCase(),
+    color:platformColors[data.platform]||'#E8A0B0',
+    fans:data.fans||'--',
+    likes:data.likes||'--',
+    videos:data.videos||'--',
+    fansChange:'+0%',
+    url:data.url,
+    verified:data.verified||''
+  });
+  renderAccounts();
+  renderDashboardStats();
+  closeAddAccountModal();
+  showToast('账号「'+name+'」已添加');
+}
+
+// 手动添加账号
+function addAccountManual(){
   const platform=document.getElementById('addAccountPlatform').value;
   const name=document.getElementById('addAccountName').value.trim();
   const url=document.getElementById('addAccountUrl').value.trim();
@@ -1713,52 +1843,93 @@ function addAccount(){
     url
   });
   renderAccounts();
+  renderDashboardStats();
   closeAddAccountModal();
   showToast('账号「'+name+'」已添加');
 }
 
 // ===== 账号抓取分析 =====
-function fetchAccount(){
-  const platform=document.getElementById('fetchPlatform').value;
+async function fetchAccount(){
   const accountId=document.getElementById('fetchAccountId').value.trim();
-  if(!accountId){showToast('请输入账号ID或主页链接');return;}
+  if(!accountId){showToast('请输入账号主页链接');return;}
   const btn=document.getElementById('fetchBtn');
-  btn.disabled=true;btn.innerHTML='<div class="spinner" style="width:14px;height:14px;border-width:2px"></div>分析中...';
+  btn.disabled=true;btn.innerHTML='<div class="spinner" style="width:14px;height:14px;border-width:2px"></div>抓取中...';
   const result=document.getElementById('fetchResult');
   const loading=document.getElementById('fetchLoading');
   const content=document.getElementById('fetchContent');
   result.classList.add('show');loading.style.display='flex';content.style.display='none';
-  setTimeout(()=>{
-    loading.style.display='none';content.style.display='block';
-    btn.disabled=false;btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>重新抓取';
-    const platformNames={douyin:'抖音',xhs:'小红书',wx:'视频号'};
-    const displayName=accountId.replace(/^@/,'').split('/').pop().substring(0,12);
-    // 构造跳转链接
-    let jumpUrl=accountId;
-    if(!accountId.startsWith('http')){
-      if(platform==='douyin') jumpUrl='https://www.douyin.com/search/'+encodeURIComponent(accountId);
-      else if(platform==='xhs') jumpUrl='https://www.xiaohongshu.com/search_result?keyword='+encodeURIComponent(accountId);
-      else jumpUrl='#';
-    }
-    document.getElementById('fetchAccountCards').innerHTML=`
-      <div class="account-card" style="grid-column:1/-1;cursor:pointer" onclick="window.open('${jumpUrl}','_blank')" title="点击访问账号主页">
-        <div class="account-header">
-          <div class="account-avatar" style="background:linear-gradient(135deg,#E8A0B0,#C87090)">${displayName.charAt(0).toUpperCase()}</div>
-          <div class="account-info">
-            <div class="account-name">${displayName}</div>
-            <div class="account-handle">${accountId} · ${platformNames[platform]}</div>
+  
+  try {
+    // 调用后端API解析链接并抓取数据
+    const apiResult=await apiRequest('/api/parse-account-url',{
+      method:'POST',
+      body:JSON.stringify({url:accountId})
+    });
+    
+    loading.style.display='none';
+    
+    if(apiResult&&apiResult.success&&apiResult.data){
+      const data=apiResult.data;
+      const platformColors={douyin:'#2C2C2C',xhs:'#E84C4C',wx:'#4CAF50'};
+      const color=platformColors[data.platform]||'#E8A0B0';
+      const displayName=data.name||data.accountId||'未知账号';
+      
+      document.getElementById('fetchAccountCards').innerHTML=`
+        <div class="account-card" style="grid-column:1/-1;cursor:pointer" onclick="window.open('${data.url}','_blank')" title="点击访问账号主页">
+          <div class="account-header">
+            <div class="account-avatar" style="background:${color}">${displayName.charAt(0).toUpperCase()}</div>
+            <div class="account-info">
+              <div class="account-name">${displayName}</div>
+              <div class="account-handle">${data.platformName} · ${data.accountId}</div>
+            </div>
+            <span class="tag tag-${data.fetchSuccess?'green':'orange'}">${data.fetchSuccess?'抓取成功':'部分信息缺失'}</span>
           </div>
-          <span class="tag tag-pink">已分析</span>
-        </div>
-        <div class="account-stats">
-          <div class="account-stat"><div class="account-stat-value">${(Math.random()*50+5).toFixed(1)}万</div><div class="account-stat-label">粉丝</div></div>
-          <div class="account-stat"><div class="account-stat-value">${(Math.random()*200+20).toFixed(1)}万</div><div class="account-stat-label">获赞</div></div>
-          <div class="account-stat"><div class="account-stat-value">${Math.floor(Math.random()*100+10)}</div><div class="account-stat-label">作品</div></div>
-          <div class="account-stat"><div class="account-stat-value" style="color:#609880">+${(Math.random()*15+2).toFixed(1)}%</div><div class="account-stat-label">本周涨粉</div></div>
-        </div>
+          <div class="account-stats">
+            <div class="account-stat"><div class="account-stat-value">${data.fans||'--'}</div><div class="account-stat-label">粉丝</div></div>
+            <div class="account-stat"><div class="account-stat-value">${data.likes||'--'}</div><div class="account-stat-label">获赞</div></div>
+            <div class="account-stat"><div class="account-stat-value">${data.videos||'--'}</div><div class="account-stat-label">作品</div></div>
+            <div class="account-stat"><div class="account-stat-value" style="color:#609880">${data.fetchSuccess?'已更新':'待补充'}</div><div class="account-stat-label">数据状态</div></div>
+          </div>
+        </div>`;
+      
+      // 更新数据源说明
+      const noteEl=document.querySelector('.data-source-note');
+      if(noteEl){
+        if(data.fetchSuccess){
+          noteEl.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>数据已从账号主页实时抓取，部分平台因反爬限制可能无法获取完整数据。';
+        }else{
+          noteEl.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'+data.message;
+        }
+      }
+      
+      content.style.display='block';
+      showToast(data.fetchSuccess?'账号数据抓取成功':'已解析链接，部分数据需手动补充');
+    }else{
+      // 解析失败
+      content.style.display='block';
+      document.getElementById('fetchAccountCards').innerHTML=`
+        <div style="padding:40px;text-align:center;color:var(--muted-fg)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:48px;height:48px;margin:0 auto 16px;opacity:0.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <div style="font-size:14px;margin-bottom:8px">链接解析失败</div>
+          <div style="font-size:12px">${apiResult?.message||'请输入有效的抖音、小红书或视频号账号主页链接'}</div>
+        </div>`;
+      showToast('链接解析失败，请检查链接是否正确');
+    }
+  } catch(err){
+    console.error('抓取账号数据失败:',err);
+    loading.style.display='none';
+    content.style.display='block';
+    document.getElementById('fetchAccountCards').innerHTML=`
+      <div style="padding:40px;text-align:center;color:var(--muted-fg)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:48px;height:48px;margin:0 auto 16px;opacity:0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <div style="font-size:14px;margin-bottom:8px">抓取失败</div>
+        <div style="font-size:12px">网络错误或后端服务未响应，请稍后重试</div>
       </div>`;
-    showToast('账号分析完成，已更新高赞内容与标签分析');
-  },1800);
+    showToast('抓取失败，请稍后重试');
+  } finally {
+    btn.disabled=false;
+    btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>重新抓取';
+  }
 }
 
 // ===== 高赞内容 =====

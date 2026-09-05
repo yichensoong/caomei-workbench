@@ -273,6 +273,188 @@ app.post('/api/refresh-news', (req, res) => {
   res.json({ success: true, message: '资讯已刷新', lastUpdate: newsCache.lastUpdate });
 });
 
+// ==================== 账号链接解析与数据抓取 ====================
+
+// 解析账号链接，识别平台和账号ID
+function parseAccountUrl(url) {
+  if (!url) return null;
+  url = url.trim();
+  
+  // 抖音
+  if (url.includes('douyin.com')) {
+    // https://www.douyin.com/user/xxxxx
+    const userMatch = url.match(/douyin\.com\/user\/([^/?#]+)/);
+    if (userMatch) {
+      return { platform: 'douyin', platformName: '抖音', accountId: userMatch[1], url };
+    }
+    // 短链接 https://v.douyin.com/xxxxx/
+    if (url.includes('v.douyin.com')) {
+      return { platform: 'douyin', platformName: '抖音', accountId: 'short_link', url, needRedirect: true };
+    }
+    return { platform: 'douyin', platformName: '抖音', accountId: 'unknown', url };
+  }
+  
+  // 小红书
+  if (url.includes('xiaohongshu.com') || url.includes('xhslink.com')) {
+    // https://www.xiaohongshu.com/user/profile/xxxxx
+    const profileMatch = url.match(/xiaohongshu\.com\/user\/profile\/([^/?#]+)/);
+    if (profileMatch) {
+      return { platform: 'xhs', platformName: '小红书', accountId: profileMatch[1], url };
+    }
+    // 短链接
+    if (url.includes('xhslink.com')) {
+      return { platform: 'xhs', platformName: '小红书', accountId: 'short_link', url, needRedirect: true };
+    }
+    return { platform: 'xhs', platformName: '小红书', accountId: 'unknown', url };
+  }
+  
+  // 视频号（微信）
+  if (url.includes('channels.weixin.qq.com') || url.includes('weixin.qq.com/channels')) {
+    return { platform: 'wx', platformName: '视频号', accountId: 'unknown', url };
+  }
+  
+  // 无法识别
+  return null;
+}
+
+// 抓取账号数据
+async function fetchAccountData(parsed) {
+  const { platform, platformName, accountId, url } = parsed;
+  const result = {
+    platform,
+    platformName,
+    accountId,
+    url,
+    name: '',
+    fans: '',
+    likes: '',
+    videos: '',
+    verified: '',
+    avatar: '',
+    fetchSuccess: false,
+    message: ''
+  };
+  
+  try {
+    // 设置请求头，模拟浏览器
+    const headers = {
+      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+      'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+      'Referer': platform === 'douyin' ? 'https://www.douyin.com/' : platform === 'xhs' ? 'https://www.xiaohongshu.com/' : 'https://channels.weixin.qq.com/'
+    };
+    
+    const response = await axios.get(url, { 
+      headers,
+      timeout: 10000,
+      maxRedirects: 5
+    });
+    
+    const html = response.data;
+    
+    // 解析HTML中的元数据
+    // og:title
+    const ogTitleMatch = html.match(/<meta\s+property="og:title"\s+content="([^"]+)"/i);
+    if (ogTitleMatch) {
+      result.name = ogTitleMatch[1].trim();
+    }
+    
+    // og:description
+    const ogDescMatch = html.match(/<meta\s+property="og:description"\s+content="([^"]+)"/i);
+    if (ogDescMatch) {
+      result.verified = ogDescMatch[1].trim();
+    }
+    
+    // og:image
+    const ogImageMatch = html.match(/<meta\s+property="og:image"\s+content="([^"]+)"/i);
+    if (ogImageMatch) {
+      result.avatar = ogImageMatch[1].trim();
+    }
+    
+    // 尝试从页面标题提取
+    if (!result.name) {
+      const titleMatch = html.match(/<title>([^<]+)<\/title>/i);
+      if (titleMatch) {
+        result.name = titleMatch[1].trim().replace(/[-_].*$/, '').trim();
+      }
+    }
+    
+    // 抖音特定解析：尝试从页面脚本中提取用户数据
+    if (platform === 'douyin') {
+      // 尝试匹配粉丝数等数据（抖音页面是动态渲染的，可能获取不到）
+      const fansMatch = html.match(/"follower_count["\s:]+(\d+)/);
+      const likesMatch = html.match(/"total_favorited["\s:]+(\d+)/);
+      const videosMatch = html.match(/"aweme_count["\s:]+(\d+)/);
+      const nicknameMatch = html.match(/"nickname["\s:]+"([^"]+)"/);
+      
+      if (nicknameMatch) result.name = nicknameMatch[1];
+      if (fansMatch) result.fans = formatNumber(parseInt(fansMatch[1]));
+      if (likesMatch) result.likes = formatNumber(parseInt(likesMatch[1]));
+      if (videosMatch) result.videos = videosMatch[1];
+    }
+    
+    // 小红书特定解析
+    if (platform === 'xhs') {
+      const nicknameMatch = html.match(/"nickname["\s:]+"([^"]+)"/);
+      const fansMatch = html.match(/"fans["\s:]+(\d+)/);
+      if (nicknameMatch) result.name = nicknameMatch[1];
+      if (fansMatch) result.fans = formatNumber(parseInt(fansMatch[1]));
+    }
+    
+    if (result.name || result.fans) {
+      result.fetchSuccess = true;
+      result.message = '账号数据抓取成功';
+    } else {
+      result.fetchSuccess = false;
+      result.message = '已解析链接，但由于平台反爬限制，无法获取完整数据，请手动填写';
+    }
+    
+  } catch (err) {
+    console.error('抓取账号数据失败:', err.message);
+    result.fetchSuccess = false;
+    result.message = '抓取失败：' + (err.message || '网络错误') + '，请手动填写账号信息';
+  }
+  
+  return result;
+}
+
+// 数字格式化
+function formatNumber(num) {
+  if (!num || isNaN(num)) return '--';
+  if (num >= 100000000) return (num / 100000000).toFixed(1) + '亿';
+  if (num >= 10000) return (num / 10000).toFixed(1) + '万';
+  return num.toString();
+}
+
+// 解析账号链接API
+app.post('/api/parse-account-url', async (req, res) => {
+  try {
+    const { url } = req.body;
+    if (!url) {
+      return res.status(400).json({ success: false, message: '请输入账号链接' });
+    }
+    
+    const parsed = parseAccountUrl(url);
+    if (!parsed) {
+      return res.json({ 
+        success: false, 
+        message: '无法识别该链接，请输入抖音、小红书或视频号的账号主页链接' 
+      });
+    }
+    
+    // 尝试抓取账号数据
+    const accountData = await fetchAccountData(parsed);
+    
+    res.json({
+      success: true,
+      data: accountData
+    });
+  } catch (err) {
+    console.error('解析账号链接失败:', err);
+    res.status(500).json({ success: false, message: '解析失败：' + err.message });
+  }
+});
+
 // ==================== 前端页面路由 ====================
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'index.html'));
